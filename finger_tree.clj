@@ -6,29 +6,29 @@
   (vec xs))
 
 
-(defn deep-tree [l m r & [cache-fns]]
+(defn deep-tree [l m r cache-fns]
   [l m r cache-fns])
 
 (defn single [[_ _ _ cache-fns] x]
   [(node cache-fns x) nil [] cache-fns])
 
 (defn single? [l m r]
-  (and (< (count l) 2) (empty? m) (empty? r)))
+  (and (< (count l) 2) (nil? m) (empty? r)))
 
 (defn ft-empty? [[l m r]]
-  (and (empty? l) (empty? m) (empty? r)))
+  (and (empty? l) (nil? m) (empty? r)))
 
 
 (defn ft-seq [t]
   (when-not (ft-empty? t)
     (let [[l m r] t]
-      (lazy-cat l (apply concat (ft-seq m)) r))))
+      (lazy-cat l (apply concat (ft-seq (and m @m))) r))))
 
 (defn ft-rseq [t]
   (when-not (ft-empty? t)
     (let [[l m r] t]
       (lazy-cat (reverse r)
-                (mapcat reverse (ft-rseq m))
+                (mapcat reverse (ft-rseq (and m @m)))
                 (reverse l)))))
 
 (defn conjl [t a]
@@ -36,10 +36,13 @@
     (let [[l m r cache-fns] t]
       (if (< (count l) 4)
         (if (single? l m r)
-          (deep-tree (node cache-fns a) nil l)
-          (deep-tree (apply node cache-fns (cons a l)) m r))
+          (deep-tree (node cache-fns a) nil l (t 3))
+          (deep-tree (apply node cache-fns (cons a l)) m r (t 3)))
         (let [[b c d e] l]
-          (deep-tree [a b] (conjl m (node cache-fns c d e)) r))))
+          (deep-tree [a b]
+                     (delay (conjl (and m @m) (node cache-fns c d e)))
+                     r
+                     (t 3)))))
     (single t a)))
 
 (defn conjr [t a]
@@ -47,10 +50,13 @@
     (let [[l m r cache-fns] t]
       (if (< (count r) 4)
         (if (single? l m r)
-          (deep-tree l nil (node cache-fns a))
-          (deep-tree l m (apply node cache-fns (conj r a))))
+          (deep-tree l nil (node cache-fns a) (t 3))
+          (deep-tree l m (apply node cache-fns (conj r a)) (t 3)))
         (let [[e d c b] r]
-          (deep-tree l (conjr m (node cache-fns e d c)) (node cache-fns b a)))))
+          (deep-tree l
+                     (delay (conjr (and m @m) (node cache-fns e d c)))
+                     (node cache-fns b a)
+                     (t 3)))))
     (single t a)))
 
 (defn finger-tree [cache-fns & xs]
@@ -70,7 +76,11 @@
     (ft-empty? t2) (reduce conjr t1 ts)
     (single? l1 m1 r1) (conjl (reduce conjl t2 (reverse ts)) (l1 0))
     (single? l2 m2 r2) (conjr (reduce conjr t1 ts) (l2 0))
-    :else (deep-tree l1 (app3 m1 (nodes cache-fns (concat r1 ts l2)) m2) r2
+    :else (deep-tree l1
+                     (delay (app3 (and m1 @m1)
+                                  (nodes cache-fns (concat r1 ts l2))
+                                  (and m2 @m2)))
+                     r2
                      cache-fns)))
 
 (defn ft-concat [t1 t2]
