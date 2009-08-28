@@ -2,15 +2,28 @@
 
 (use 'clojure.test)
 
+(defn measure [cache-fns xs]
+  (into cache-fns
+        (for [[k [mes red]] cache-fns]
+          [k (reduce red (map mes xs))])))
+
 (defn node [cache-fns & xs]
-  (vec xs))
+  (with-meta
+    (vec xs)
+    {::v (measure cache-fns xs)}))
 
+(defn deep-tree [l m r cache-fns m-vals]
+  [l m r cache-fns m-vals])
 
-(defn deep-tree [l m r cache-fns]
-  [l m r cache-fns])
+(defn tree-vals [[l m r cache-fns m-vals]]
+  (into cache-fns
+        (for [[k [mes red]] cache-fns]
+          [k (reduce red (concat (when ^l [(k (::v ^l))])
+                                 (when m-vals [(k m-vals)])
+                                 (when ^r [(k (::v ^r))])))])))
 
 (defn single [[_ _ _ cache-fns] x]
-  [(node cache-fns x) nil [] cache-fns])
+  (deep-tree (node cache-fns x) nil [] cache-fns nil))
 
 (defn single? [l m r]
   (and (< (count l) 2) (nil? m) (empty? r)))
@@ -33,34 +46,46 @@
 
 (defn conjl [t a]
   (if-not (ft-empty? t)
-    (let [[l m r cache-fns] t]
+    (let [[l m r cache-fns m-vals] t]
       (if (< (count l) 4)
         (if (single? l m r)
-          (deep-tree (node cache-fns a) nil l (t 3))
-          (deep-tree (apply node cache-fns (cons a l)) m r (t 3)))
-        (let [[b c d e] l]
-          (deep-tree [a b]
-                     (delay (conjl (and m @m) (node cache-fns c d e)))
+          (deep-tree (node cache-fns a) nil l (t 3) nil)
+          (deep-tree (apply node cache-fns (cons a l)) m r (t 3) m-vals))
+        (let [[b c d e] l
+              n (node cache-fns c d e)]
+          (deep-tree (node cache-fns a b)
+                     (delay (conjl (and m @m) n))
                      r
-                     (t 3)))))
+                     (t 3)
+                     (if m-vals
+                       (into cache-fns
+                             (for [[k [mes red]] cache-fns]
+                               [k (red (k (::v ^n)) (k m-vals))]))
+                       (::v ^n))))))
     (single t a)))
 
 (defn conjr [t a]
   (if-not (ft-empty? t)
-    (let [[l m r cache-fns] t]
+    (let [[l m r cache-fns m-vals] t]
       (if (< (count r) 4)
         (if (single? l m r)
-          (deep-tree l nil (node cache-fns a) (t 3))
-          (deep-tree l m (apply node cache-fns (conj r a)) (t 3)))
-        (let [[e d c b] r]
+          (deep-tree l nil (node cache-fns a) (t 3) nil)
+          (deep-tree l m (apply node cache-fns (conj r a)) (t 3) m-vals))
+        (let [[e d c b] r
+              n (node cache-fns e d c)]
           (deep-tree l
-                     (delay (conjr (and m @m) (node cache-fns e d c)))
+                     (delay (conjr (and m @m) n))
                      (node cache-fns b a)
-                     (t 3)))))
+                     (t 3)
+                     (if m-vals
+                       (into cache-fns
+                             (for [[k [mes red]] cache-fns]
+                               [k (red (k m-vals) (k (::v ^n)))]))
+                       (::v ^n))))))
     (single t a)))
 
 (defn finger-tree [cache-fns & xs]
-  (reduce conjr (deep-tree [] nil [] cache-fns) xs))
+  (reduce conjr (deep-tree [] nil [] cache-fns nil) xs))
 
 (defn- nodes [cache-fns [a b c & xs :as s]]
   (assert (> (count s) 1))
@@ -70,39 +95,48 @@
     4 [(node cache-fns a b) (node cache-fns c (first xs))]
     (cons (node cache-fns a b c) (nodes cache-fns xs))))
 
-(defn- app3 [[l1 m1 r1 cache-fns :as t1] ts [l2 m2 r2 :as t2]]
+(defn- app3 [[l1 m1 r1 cache-fns m1-vals :as t1] ts [l2 m2 r2 _ m2-vals :as t2]]
   (cond
     (ft-empty? t1) (reduce conjl t2 (reverse ts))
     (ft-empty? t2) (reduce conjr t1 ts)
     (single? l1 m1 r1) (conjl (reduce conjl t2 (reverse ts)) (l1 0))
     (single? l2 m2 r2) (conjr (reduce conjr t1 ts) (l2 0))
-    :else (deep-tree l1
-                     (delay (app3 (and m1 @m1)
-                                  (nodes cache-fns (concat r1 ts l2))
-                                  (and m2 @m2)))
-                     r2
-                     cache-fns)))
+    :else (let [n-s (nodes cache-fns (concat r1 ts l2))]
+            (deep-tree l1
+                       (delay (app3 (and m1 @m1) n-s (and m2 @m2)))
+                       r2
+                       cache-fns
+                       (into cache-fns
+                             (for [[k [mes red]] cache-fns]
+                               [k (reduce red (concat
+                                                (when m1-vals [(k m1-vals)])
+                                                (map #(k (::v ^%)) n-s)
+                                                (when m2-vals [(k m2-vals)])))]))))))
 
 (defn ft-concat [t1 t2]
   (assert (= (t1 3) (t2 3))) ; cache-fns must be the same
   (app3 t1 nil t2))
 
-(deftest Conj-Seq
+(deftest Conj-Seq-Queue
   (let [len 100]
     (are [x] (= x (range len))
       (ft-rseq (reduce conjl (finger-tree nil) (range len)))
-      (ft-seq  (reduce conjr (finger-tree nil) (range len))))
+      (ft-seq  (reduce conjr (finger-tree nil) (range len))))))
+
+(deftest Conj-Seq-Stack
+  (let [len 100]
     (are [x] (= x (range (dec len) -1 -1))
       (ft-rseq (reduce conjr (finger-tree nil) (range len)))
-      (ft-seq  (reduce conjl (finger-tree nil) (range len))))
+      (ft-seq  (reduce conjl (finger-tree nil) (range len))))))
     
-    (doseq [m (range 2 7)]
-      (loop [ft (finger-tree nil), vc [], i (int 0)]
-        (if-not (< i 40)
-          (is (= (ft-seq ft) (seq vc)))
-          (if (zero? (rem i m))
-            (recur (conjl ft i) (vec (cons i vc)) (inc i))
-            (recur (conjr ft i) (conj vc i)       (inc i))))))))
+(deftest Conj-Seq-Mixed
+  (doseq [m (range 2 7)]
+    (loop [ft (finger-tree nil), vc [], i (int 0)]
+      (when (< i 40)
+        (is (= (ft-seq ft) (seq vc)))
+        (if (zero? (rem i m))
+          (recur (conjl ft i) (vec (cons i vc)) (inc i))
+          (recur (conjr ft i) (conj vc i)       (inc i)))))))
 
 (deftest Concat
   (doseq [a-len (range 25), b-len (range 25)]
@@ -111,3 +145,32 @@
           a (apply finger-tree nil a-s)
           b (apply finger-tree nil b-s)]
       (is (= (seq (concat a-s b-s)) (ft-seq (ft-concat a b)))))))
+
+(deftest Annotate-One-Direction
+  (let [cache-fns {:size [(constantly 1) +] :str [str str]}]
+    (let [len 100]
+      (are [x] (= x {:size len :str (apply str (range len))})
+        (tree-vals (reduce conjr (finger-tree cache-fns) (range len))))
+      (are [x] (= x {:size len :str (apply str (reverse (range len)))})
+        (tree-vals (reduce conjl (finger-tree cache-fns) (range len)))))))
+      
+(deftest Annotate-Mixed-Conj
+  (let [cache-fns {:size [(constantly 1) +] :str [str str]}]
+    (doseq [m (range 2 7)]
+      (loop [ft (finger-tree cache-fns), vc [], i (int 0)]
+        (when (< i 40)
+          (is (= (tree-vals ft) {:size (count vc) :str (apply str vc)}))
+          (if (zero? (rem i m))
+            (recur (conjl ft i) (vec (cons i vc)) (inc i))
+            (recur (conjr ft i) (conj vc i)       (inc i))))))))
+
+(deftest Annotate-Concat
+  (let [cache-fns {:size [(constantly 1) +] :str [str str]}]
+    (doseq [a-len (range 25), b-len (range 25)]
+      (let [a-s (map #(symbol (str % 'a)) (range a-len))
+            b-s (map #(symbol (str % 'b)) (range b-len))
+            a (apply finger-tree cache-fns a-s)
+            b (apply finger-tree cache-fns b-s)]
+        (is (= {:size (+ (count a-s) (count b-s))
+                :str (apply str (concat a-s b-s))}
+               (tree-vals (ft-concat a b))))))))
