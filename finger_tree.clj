@@ -2,7 +2,7 @@
 
 (use 'clojure.test)
 
-(defn measure [cache-fns xs]
+(defn mes* [cache-fns & xs]
   (into cache-fns
         (for [[k [mes red]] cache-fns]
           [k (reduce red (map mes xs))])))
@@ -10,7 +10,7 @@
 (defn node [cache-fns & xs]
   (with-meta
     (vec xs)
-    {::v (measure cache-fns xs)}))
+    {::v (apply mes* cache-fns xs)}))
 
 (defn deep-tree [l m r cache-fns m-vals]
   [l m r cache-fns m-vals])
@@ -44,6 +44,11 @@
                 (mapcat reverse (ft-rseq (and m @m)))
                 (reverse l)))))
 
+(defn red* [cache-fns v1 v2]
+  (zipmap (keys cache-fns)
+          (for [[k [mes red]] cache-fns]
+            (red (k v1) (k v2)))))
+
 (defn conjl [t a]
   (if-not (ft-empty? t)
     (let [[l m r cache-fns m-vals] t]
@@ -58,9 +63,7 @@
                      r
                      (t 3)
                      (if m-vals
-                       (into cache-fns
-                             (for [[k [mes red]] cache-fns]
-                               [k (red (k (::v ^n)) (k m-vals))]))
+                       (red* cache-fns (::v ^n) m-vals)
                        (::v ^n))))))
     (single t a)))
 
@@ -78,14 +81,13 @@
                      (node cache-fns b a)
                      (t 3)
                      (if m-vals
-                       (into cache-fns
-                             (for [[k [mes red]] cache-fns]
-                               [k (red (k m-vals) (k (::v ^n)))]))
+                       (red* cache-fns m-vals (::v ^n))
                        (::v ^n))))))
     (single t a)))
 
 (defn finger-tree [cache-fns & xs]
   (reduce conjr (deep-tree [] nil [] cache-fns nil) xs))
+
 
 (defn- nodes [cache-fns [a b c & xs :as s]]
   (assert (> (count s) 1))
@@ -116,6 +118,29 @@
 (defn ft-concat [t1 t2]
   (assert (= (t1 3) (t2 3))) ; cache-fns must be the same
   (app3 t1 nil t2))
+
+(defn- split-digit
+  "The last arg is a simple collection.  Returns [coll item coll]"
+  [cache-fns pred acc [a & as]]
+  (if-not as
+    [nil a nil]
+    (let [next-acc (red* cache-fns acc (mes* cache-fns a))]
+      (if (pred next-acc)
+        [nil a as]
+        (let [[l x r] (split-digit cache-fns pred next-acc as)]
+          [(cons a l) x r])))))
+
+;(defn- split-tree [pred acc [l m r cache-fns m-vals]]
+;  (let [vpr (red* cache-fns acc (::v ^l))
+;        vm  (red* cache-fns vpr m-vals)]
+;    (cond
+;      (single? l m r) [(finger-tree cache-fns) (l 0) (finger-tree cache-fns)]
+;      (pred vpr) (let [[sl sx sr] (split-digit pred acc l)]
+;                   [(apply finger-tree cache-fns sl)
+;                    sx
+;                    (deep-tree sr m r cache-fns m-vals)]) ; deepl
+;      (pred vm) 
+
 
 (deftest Conj-Seq-Queue
   (let [len 100]
