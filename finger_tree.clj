@@ -2,15 +2,47 @@
 
 (use 'clojure.test)
 
+(gen-interface
+  :name clojure.lang.IDoubleHead
+  :methods [[consLeft  [Object] clojure.lang.IDoubleHead]
+            [consRight [Object] clojure.lang.IDoubleHead]])
+
+(gen-interface
+  :name clojure.lang.IMeasured
+  :methods [[measure [] Object]])
+
+(gen-interface
+  :name clojure.lang.IPrintable
+  :methods [[print [java.io.Writer] Object]])
+
+(set! *warn-on-reflection* true)
+
 (defn mes* [cache-fns & xs]
   (into cache-fns
         (for [[k [mes red]] cache-fns]
           [k (reduce red (map mes xs))])))
 
-(defn node [cache-fns & xs]
-  (with-meta
-    (vec xs)
-    {::v (apply mes* cache-fns xs)}))
+
+(import '(clojure.lang IPersistentVector Seqable IDoubleHead IMeasured IPrintable))
+
+(defmethod print-method IPrintable [x w] (.print #^IPrintable x w))
+(prefer-method print-method IPrintable IPersistentVector)
+
+; use IPersistentVector instead of Indexed so that destructuring works.
+(defn digit [measure-fns & xs]
+  (letfn [(vector-digit [xs-vec]
+            (new [IDoubleHead IMeasured IPersistentVector Seqable IPrintable] this
+              (consLeft  [x] (vector-digit (vec (cons x xs-vec))))
+              (consRight [x] (vector-digit (conj xs-vec x)))
+              (measure   []  (apply mes* measure-fns xs-vec))
+              (nth       [i] (nth xs-vec i))
+              (count     []  (count xs-vec))
+              (seq       []  (seq xs-vec))
+              (toString  []  (str xs-vec (.measure #^IMeasured this)))
+              (print     [w] (.write w (str "#<digit " this ">")))))]
+    (vector-digit (vec xs))))
+
+(set! *warn-on-reflection* false)
 
 (defn deep-tree [l m r cache-fns m-vals]
   [l m r cache-fns m-vals])
@@ -18,12 +50,12 @@
 (defn tree-vals [[l m r cache-fns m-vals]]
   (into cache-fns
         (for [[k [mes red]] cache-fns]
-          [k (reduce red (concat (when ^l [(k (::v ^l))])
+          [k (reduce red (concat (when-not (empty? l) [(k (.measure l))])
                                  (when m-vals [(k m-vals)])
-                                 (when ^r [(k (::v ^r))])))])))
+                                 (when-not (empty? r) [(k (.measure r))])))])))
 
 (defn single [[_ _ _ cache-fns] x]
-  (deep-tree (node cache-fns x) nil [] cache-fns nil))
+  (deep-tree (digit cache-fns x) nil nil cache-fns nil))
 
 (defn single? [l m r]
   (and (< (count l) 2) (nil? m) (empty? r)))
@@ -54,17 +86,17 @@
     (let [[l m r cache-fns m-vals] t]
       (if (< (count l) 4)
         (if (single? l m r)
-          (deep-tree (node cache-fns a) nil l (t 3) nil)
-          (deep-tree (apply node cache-fns (cons a l)) m r (t 3) m-vals))
+          (deep-tree (digit cache-fns a) nil l (t 3) nil)
+          (deep-tree (.consLeft l a) m r (t 3) m-vals))
         (let [[b c d e] l
-              n (node cache-fns c d e)]
-          (deep-tree (node cache-fns a b)
+              n (digit cache-fns c d e)]
+          (deep-tree (digit cache-fns a b)
                      (delay (conjl (and m @m) n))
                      r
                      (t 3)
                      (if m-vals
-                       (red* cache-fns (::v ^n) m-vals)
-                       (::v ^n))))))
+                       (red* cache-fns (.measure n) m-vals)
+                       (.measure n))))))
     (single t a)))
 
 (defn conjr [t a]
@@ -72,37 +104,37 @@
     (let [[l m r cache-fns m-vals] t]
       (if (< (count r) 4)
         (if (single? l m r)
-          (deep-tree l nil (node cache-fns a) (t 3) nil)
-          (deep-tree l m (apply node cache-fns (conj r a)) (t 3) m-vals))
+          (deep-tree l nil (digit cache-fns a) (t 3) nil)
+          (deep-tree l m (.consRight r a) (t 3) m-vals))
         (let [[e d c b] r
-              n (node cache-fns e d c)]
+              n (digit cache-fns e d c)]
           (deep-tree l
                      (delay (conjr (and m @m) n))
-                     (node cache-fns b a)
+                     (digit cache-fns b a)
                      (t 3)
                      (if m-vals
-                       (red* cache-fns m-vals (::v ^n))
-                       (::v ^n))))))
+                       (red* cache-fns m-vals (.measure n))
+                       (.measure n))))))
     (single t a)))
 
 (defn finger-tree [cache-fns & xs]
-  (reduce conjr (deep-tree [] nil [] cache-fns nil) xs))
+  (reduce conjr (deep-tree nil nil nil cache-fns nil) xs))
 
 
 (defn- nodes [cache-fns [a b c & xs :as s]]
   (assert (> (count s) 1))
   (condp = (count s)
-    2 [(node cache-fns a b)]
-    3 [(node cache-fns a b c)]
-    4 [(node cache-fns a b) (node cache-fns c (first xs))]
-    (cons (node cache-fns a b c) (nodes cache-fns xs))))
+    2 [(digit cache-fns a b)]
+    3 [(digit cache-fns a b c)]
+    4 [(digit cache-fns a b) (digit cache-fns c (first xs))]
+    (cons (digit cache-fns a b c) (nodes cache-fns xs))))
 
 (defn- app3 [[l1 m1 r1 cache-fns m1-vals :as t1] ts [l2 m2 r2 _ m2-vals :as t2]]
   (cond
     (ft-empty? t1) (reduce conjl t2 (reverse ts))
     (ft-empty? t2) (reduce conjr t1 ts)
-    (single? l1 m1 r1) (conjl (reduce conjl t2 (reverse ts)) (l1 0))
-    (single? l2 m2 r2) (conjr (reduce conjr t1 ts) (l2 0))
+    (single? l1 m1 r1) (conjl (reduce conjl t2 (reverse ts)) (nth l1 0))
+    (single? l2 m2 r2) (conjr (reduce conjr t1 ts) (nth l2 0))
     :else (let [n-s (nodes cache-fns (concat r1 ts l2))]
             (deep-tree l1
                        (delay (app3 (and m1 @m1) n-s (and m2 @m2)))
@@ -112,7 +144,7 @@
                              (for [[k [mes red]] cache-fns]
                                [k (reduce red (concat
                                                 (when m1-vals [(k m1-vals)])
-                                                (map #(k (::v ^%)) n-s)
+                                                (map #(k (.measure %)) n-s)
                                                 (when m2-vals [(k m2-vals)])))]))))))
 
 (defn ft-concat [t1 t2]
@@ -131,7 +163,7 @@
           [(cons a l) x r])))))
 
 ;(defn- split-tree [pred acc [l m r cache-fns m-vals]]
-;  (let [vpr (red* cache-fns acc (::v ^l))
+;  (let [vpr (red* cache-fns acc (.measure l))
 ;        vm  (red* cache-fns vpr m-vals)]
 ;    (cond
 ;      (single? l m r) [(finger-tree cache-fns) (l 0) (finger-tree cache-fns)]
