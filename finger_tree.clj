@@ -19,14 +19,15 @@
   :name clojure.lang.IPrintable
   :methods [[print [java.io.Writer] Object]])
 
-(import '(clojure.lang Indexed Seqable IFingerTreeNode IPrintable))
+(import '(clojure.lang Indexed Seqable ISeq IFingerTreeNode IPrintable
+                       IPersistentStack))
 
 (set! *warn-on-reflection* true)
 
 (defn mes* [cache-fns & xs]
   (into cache-fns
         (if (instance? IFingerTreeNode (first xs))
-          (let [mes-maps (map #(.measure %) xs)]
+          (let [mes-maps (map #(.measure #^IFingerTreeNode %) xs)]
             (for [[k [mes red]] cache-fns]
               [k (reduce red (map k mes-maps))]))
           (for [[k [mes red]] cache-fns]
@@ -42,18 +43,25 @@
 
 
 (defmethod print-method IPrintable [x w] (.print #^IPrintable x w))
+(prefer-method print-method IPrintable ISeq)
 
 (defn #^IFingerTreeNode digit [measure-fns & xs]
   (assert (<= 1 (count xs) 4))
   (let [xs-vec (vec xs)]
-    (new [IFingerTreeNode Indexed Seqable IPrintable] this
+    (new [IFingerTreeNode ISeq IPersistentStack Indexed IPrintable] this
       (consLeft  [x] (apply digit measure-fns x xs-vec))
       (consRight [x] (apply digit measure-fns (conj xs-vec x)))
       (measure   []  (apply mes* measure-fns xs-vec))
       (measureFns[]  measure-fns)
       (nth       [i] (nth xs-vec i))
       (count     []  (count xs-vec))
-      (seq       []  (seq xs-vec))
+      (seq       []  this)
+      (first     []  (nth xs-vec 0))
+      (next      []  (when (> (count xs-vec) 1)
+                       (apply digit measure-fns (next xs-vec))))
+      (peek      []  (peek xs-vec))
+      (pop       []  (when (> (count xs-vec) 1)
+                       (apply digit measure-fns (pop xs-vec))))
       (toString  []  (str xs-vec))
       (print     [w] (.write w (str "#<digit " this ">"))))))
 
@@ -82,26 +90,22 @@
 (declare single deep)
 
 (defn empty-ft [measure-fns]
-  (new [IFingerTreeNode Indexed Seqable IPrintable] this
+  (new [IFingerTreeNode Indexed IPrintable] this
     (consLeft  [a] (single measure-fns a))
     (consRight [b] (single measure-fns b))
     (measure   []  (iden* measure-fns))
     (measureFns[]  measure-fns)
     (count     []  0)
-    (seq       []  nil)
     (toString  []  (keys measure-fns))
     (print     [w] (.write w (str "#<empty " this ">")))))
 
 (defn single [measure-fns x]
-  (new [IFingerTreeNode Indexed Seqable IPrintable] this
+  (new [IFingerTreeNode Indexed IPrintable] this
     (consLeft  [a] (deep (digit measure-fns a) nil (digit measure-fns x)))
     (consRight [b] (deep (digit measure-fns x) nil (digit measure-fns b)))
-    (measure   []  (if (instance? IFingerTreeNode x)
-                     (.measure x)
-                     (mes* measure-fns x)))
+    (measure   []  (mes* measure-fns x))
     (nth       [i] x)
     (count     []  1)
-    (seq       []  (cons x nil))
     (toString  []  (str x (.measure #^IFingerTreeNode this)))
     (print     [w]
       (binding [*out* w]
@@ -111,11 +115,17 @@
         (print ">")))))
 
 (defn delayed-ft [tree-ref mval]
-  (new [IFingerTreeNode Seqable IPrintable] this
-    (consLeft  [a] (.consLeft #^IFingerTreeNode @tree-ref a))
+  (new [IFingerTreeNode ISeq IPersistentStack IPrintable] this
+    (consLeft  [a] (.consLeft  #^IFingerTreeNode @tree-ref a))
     (consRight [b] (.consRight #^IFingerTreeNode @tree-ref b))
+    (seq       []  this)
+    (first     []  (.first #^ISeq @tree-ref))
+    (more      []  (.next  #^ISeq @tree-ref))
+    (next      []  (.next  #^ISeq @tree-ref))
+    (peek      []  (.peek  #^IPersistentStack @tree-ref))
+    (pop       []  (.pop   #^IPersistentStack @tree-ref))
     (measure   []  mval)
-    (seq       []  (.seq #^Seqable @tree-ref))
+    (measureFns[]  (.measureFns #^IFingerTreeNode @tree-ref))
     (toString  []  (.toString #^Object @tree-ref))
     (print     [w]
       (binding [*out* w]
@@ -126,29 +136,49 @@
 (defmacro delay-ft [tree-expr mval]
   `(delayed-ft (delay ~tree-expr) ~mval))
 
+(defn to-tree [measure-fns s]
+  (reduce #(.consLeft %1 %2) (empty-ft measure-fns) s))
+
+(defn deep-left [pre m suf]
+  (cond
+    pre   (deep pre m suf)
+    m     (deep (apply digit (.measureFns m) (first m)) (next m) suf) ; TBD delay
+    :else (to-tree suf)))
+
 (defn deep [#^IFingerTreeNode pre, #^IFingerTreeNode m, #^IFingerTreeNode suf]
   (assert (= (.measureFns pre) (.measureFns suf)))
   (let [measure-fns (.measureFns pre)
         mval (if m
                (mes* measure-fns pre m suf)
                (mes* measure-fns pre suf))]
-    (new [IFingerTreeNode Seqable IPrintable] this
+    (new [IFingerTreeNode ISeq IPersistentStack IPrintable] this
       (consLeft  [a] (if (< (count pre) 4)
                        (deep (.consLeft pre a) m suf)
                        (let [[b c d e] pre
                              n (node3 measure-fns c d e)]
-                         ;(prn :n n)
                          (deep (digit measure-fns a b)
                                (if m
                                  (delay-ft (.consLeft m n)
                                            (mes* measure-fns n m))
                                  (single measure-fns n))
-                                 ;(delay-ft (.consLeft (empty-ft measure-fns) n)
-                                 ;          (.measure n)))
                                suf))))
-      (consRight [b]) ;TBD
+      (consRight [a] (if (< (count suf) 4)
+                       (deep pre m (.consRight suf a))
+                       (let [[e d c b] suf
+                             n (node3 measure-fns e d c)]
+                         (deep pre
+                               (if m
+                                 (delay-ft (.consRight m n)
+                                           (mes* measure-fns m n))
+                                 (single measure-fns n))
+                               (digit measure-fns b a)))))
+      (seq       []  this)
+      (first     []  (first pre))
+      (more      []  (.next this))
+      (next      []  (deep-left (next pre) m suf))
+      (peek      []  (peek suf))
       (measure   []  mval)
-      (seq       []) ;TBD
+      (measureFns[]  measure-fns)
       (toString  []  "deep-finger-tree")
       (print     [w]
         (binding [*out* w]
