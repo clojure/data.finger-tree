@@ -11,6 +11,8 @@
 - add pre-packaged ctor for vector-like obj, perhaps also priority queue
 - implement java.util.Collection
 - implement equals
+- implement IChunkedSeq?
+- replace copy/pasted code with macros
 )
 
 (use 'clojure.test)
@@ -19,6 +21,10 @@
   :name clojure.lang.IFingerTreeNode
   :methods [[consLeft  [Object] clojure.lang.IFingerTreeNode]
             [consRight [Object] clojure.lang.IFingerTreeNode]
+            [app3 [clojure.lang.ISeq clojure.lang.IFingerTreeNode]
+                  clojure.lang.IFingerTreeNode]
+            [app3deep [clojure.lang.ISeq clojure.lang.IFingerTreeNode]
+                      clojure.lang.IFingerTreeNode]
             [measure [] Object]
             [measureFns [] clojure.lang.IPersistentCollection]])
 
@@ -68,7 +74,7 @@
       (measureFns[]  measure-fns)
       (nth       [i] (nth xs-vec i))
       (count     []  (count xs-vec))
-      (seq       []  this)
+      (seq       []  (seq xs-vec))
       (first     []  (nth xs-vec 0))
       (next      []  (when (> (count xs-vec) 1)
                        (apply digit measure-fns (next xs-vec))))
@@ -100,10 +106,18 @@
       (toString  []  (str [a b c] mval))
       (print     [w] (.write w (str "#<node3 " this ">"))))))
 
+(defn- nodes
+  ([mfns a b]          [(digit mfns a b)])
+  ([mfns a b c]        [(digit mfns a b c)])
+  ([mfns a b c d]      [(digit mfns a b) (digit mfns c d)])
+  ([mfns a b c d & xs] (lazy-seq  ; lazy to avoid stack overflow
+                         (cons (digit mfns a b c) (apply nodes mfns d xs)))))
+
 (defn rev-tree [#^IFingerTreeNode tree]
   (new [IFingerTreeNode ISeq IPersistentStack Reversible IPrintable] this
     (consLeft  [a] (rev-tree (.consRight tree a)))
     (consRight [a] (rev-tree (.consLeft tree a)))
+    (app3      [ts t2] (rev-tree (.app3 tree (reverse ts) (rev-tree t2)))) ; TEST!!
     (seq       []  (when (.seq #^ISeq tree) this))
     (rseq      []  (when (.seq #^ISeq tree) tree))
     (first     []  (.peek #^IPersistentStack tree))
@@ -124,10 +138,16 @@
 
 (declare single deep)
 
-(defn empty-ft [measure-fns]
+(defn #^IFingerTreeNode empty-ft [measure-fns]
   (new [IFingerTreeNode ISeq IPersistentStack Reversible IPrintable] this
     (consLeft  [a] (single measure-fns a))
     (consRight [b] (single measure-fns b))
+    (app3      [ts t2] ;(prn :FOO :T1 this :TS ts :T2 t2)
+               (reduce #(.consLeft #^IFingerTreeNode %1 %2)
+                               (or t2 (empty-ft measure-fns))
+                               (reverse ts)))
+    (app3deep  [ts t1] (let [t2 this]
+                         (reduce #(.consRight #^IFingerTreeNode %1 %2) t1 ts)))
     (measure   []  (iden* measure-fns))
     (measureFns[]  measure-fns)
     (count     []  0)
@@ -145,6 +165,11 @@
   (new [IFingerTreeNode ISeq IPersistentStack Reversible IPrintable] this
     (consLeft  [a] (deep (digit measure-fns a) nil (digit measure-fns x)))
     (consRight [b] (deep (digit measure-fns x) nil (digit measure-fns b)))
+    (app3      [ts t2] (.consLeft (.app3 (empty-ft measure-fns) ts t2) x))
+    (app3deep  [ts t1] (let [t2 this]
+                         (.consRight
+                           (reduce #(.consRight #^IFingerTreeNode %1 %2) t1 ts)
+                           x)))
     (measure   []  (mes* measure-fns x))
     (measureFns[]  measure-fns)
     (seq       []  this)
@@ -166,6 +191,8 @@
   (new [IFingerTreeNode ISeq IPersistentStack IPrintable] this
     (consLeft  [a] (.consLeft  #^IFingerTreeNode @tree-ref a))
     (consRight [b] (.consRight #^IFingerTreeNode @tree-ref b))
+    (app3      [ts t2] (.app3  #^IFingerTreeNode @tree-ref ts t2))
+    (app3deep  [ts t1] (.app3deep #^IFingerTreeNode @tree-ref ts t1))
     (seq       []  this) ; empty trees are never delayed
     (first     []  (.first #^ISeq @tree-ref))
     (more      []  (.more  #^ISeq @tree-ref))
@@ -212,6 +239,9 @@
                (mes* measure-fns pre m suf)
                (mes* measure-fns pre suf))]
     (new [IFingerTreeNode ISeq IPersistentStack Reversible IPrintable] this
+      (pre [] pre)
+      (mid [] m)
+      (suf [] suf)
       (consLeft  [a] (if (< (count pre) 4)
                        (deep (.consLeft pre a) m suf)
                        (let [[b c d e] pre
@@ -232,6 +262,18 @@
                                            (mes* measure-fns m n))
                                  (single measure-fns n))
                                (digit measure-fns b a)))))
+      (app3      [ts t2] (.app3deep
+                           #^IFingerTreeNode (or t2 (empty-ft measure-fns))
+                           ts
+                           this))
+      (app3deep  [ts t1] (let [t2 #^IFingerTreeNode this]
+                           ;(prn :T1 t1 :TS ts :T2 t2)
+                           (deep (or (.pre t1) (empty-ft measure-fns))
+                                 (.app3 (or (.mid t1) (empty-ft measure-fns))
+                                        (apply nodes measure-fns
+                                               (concat (.suf t1) ts (.pre t2)))
+                                        (when t2 (.mid t2)))
+                                 (.suf t2))))
       (seq       []  this)
       (rseq      []  (rev-tree this))
       (first     []  (.first #^ISeq pre))
@@ -256,23 +298,20 @@
 (set! *warn-on-reflection* false)
 ;=====
 
-(defn conjl [t a] (.consLeft #^IFingerTreeNode t a))
+(defn consl [t a] (.consLeft #^IFingerTreeNode t a))
 (defn conjr [t a] (.consRight #^IFingerTreeNode t a))
 
+(defn ft-concat [t1 t2]
+  (assert (= (.measureFns t1) (.measureFns t2))) ; cache-fns must be the same
+  (.app3 t1 nil t2))
+
 (comment
-(defn- nodes [cache-fns [a b c & xs :as s]]
-  (assert (> (count s) 1))
-  (condp = (count s)
-    2 [(digit cache-fns a b)]
-    3 [(digit cache-fns a b c)]
-    4 [(digit cache-fns a b) (digit cache-fns c (first xs))]
-    (cons (digit cache-fns a b c) (nodes cache-fns xs))))
 
 (defn- app3 [[l1 m1 r1 cache-fns m1-vals :as t1] ts [l2 m2 r2 _ m2-vals :as t2]]
   (cond
-    (empty? t1) (reduce conjl t2 (reverse ts))
+    (empty? t1) (reduce consl t2 (reverse ts))
     (empty? t2) (reduce conjr t1 ts)
-    (single? l1 m1 r1) (conjl (reduce conjl t2 (reverse ts)) (nth l1 0))
+    (single? l1 m1 r1) (consl (reduce consl t2 (reverse ts)) (nth l1 0))
     (single? l2 m2 r2) (conjr (reduce conjr t1 ts) (nth l2 0))
     :else (let [n-s (nodes cache-fns (concat r1 ts l2))]
             (deep-tree l1
@@ -285,10 +324,6 @@
                                                 (when m1-vals [(k m1-vals)])
                                                 (map #(k (.measure %)) n-s)
                                                 (when m2-vals [(k m2-vals)])))]))))))
-
-(defn ft-concat [t1 t2]
-  (assert (= (t1 3) (t2 3))) ; cache-fns must be the same
-  (app3 t1 nil t2))
 
 (defn- split-digit
   "The last arg is a simple collection.  Returns [coll item coll]"
@@ -317,14 +352,14 @@
 (deftest Conj-Seq-Queue
   (let [len 100]
     (are [x] (= (map identity x) (range len))
-      (rseq (reduce conjl (finger-tree nil) (range len)))
+      (rseq (reduce consl (finger-tree nil) (range len)))
       (seq  (reduce conjr (finger-tree nil) (range len))))))
 
 (deftest Conj-Seq-Stack
   (let [len 100]
     (are [x] (= (map identity x) (range (dec len) -1 -1))
       (rseq (reduce conjr (finger-tree nil) (range len)))
-      (seq  (reduce conjl (finger-tree nil) (range len))))))
+      (seq  (reduce consl (finger-tree nil) (range len))))))
     
 (deftest Conj-Seq-Mixed
   (doseq [m (range 2 7)]
@@ -332,16 +367,16 @@
       (when (< i 40)
         (is (= (seq (map identity ft)) (seq vc)))
         (if (zero? (rem i m))
-          (recur (conjl ft i) (vec (cons i vc)) (inc i))
+          (recur (consl ft i) (vec (cons i vc)) (inc i))
           (recur (conjr ft i) (conj vc i)       (inc i)))))))
 
-#_(deftest Concat
+(deftest Concat
   (doseq [a-len (range 25), b-len (range 25)]
     (let [a-s (map #(symbol (str % 'a)) (range a-len))
           b-s (map #(symbol (str % 'b)) (range b-len))
           a (apply finger-tree nil a-s)
           b (apply finger-tree nil b-s)]
-      (is (= (seq (concat a-s b-s)) (seq (ft-concat a b)))))))
+      (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
 
 (deftest Annotate-One-Direction
   (let [cache-fns {:size [(constantly 1) + 0] :str [str str ""]}]
@@ -349,7 +384,7 @@
       (are [x] (= x {:size len :str (apply str (range len))})
         (.measure (reduce conjr (finger-tree cache-fns) (range len))))
       (are [x] (= x {:size len :str (apply str (reverse (range len)))})
-        (.measure (reduce conjl (finger-tree cache-fns) (range len)))))))
+        (.measure (reduce consl (finger-tree cache-fns) (range len)))))))
       
 (deftest Annotate-Mixed-Conj
   (let [cache-fns {:size [(constantly 1) + 0] :str [str str ""]}]
@@ -358,10 +393,10 @@
         (when (< i 40)
           (is (= (.measure ft) {:size (count vc) :str (apply str vc)}))
           (if (zero? (rem i m))
-            (recur (conjl ft i) (vec (cons i vc)) (inc i))
+            (recur (consl ft i) (vec (cons i vc)) (inc i))
             (recur (conjr ft i) (conj vc i)       (inc i))))))))
 
-#_(deftest Annotate-Concat
+(deftest Annotate-Concat
   (let [cache-fns {:size [(constantly 1) + 0] :str [str str ""]}]
     (doseq [a-len (range 25), b-len (range 25)]
       (let [a-s (map #(symbol (str % 'a)) (range a-len))
@@ -370,4 +405,4 @@
             b (apply finger-tree cache-fns b-s)]
         (is (= {:size (+ (count a-s) (count b-s))
                 :str (apply str (concat a-s b-s))}
-               (tree-vals (ft-concat a b))))))))
+               (.measure (ft-concat a b))))))))
