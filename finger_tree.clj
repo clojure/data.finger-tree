@@ -90,22 +90,35 @@
 (declare single deep)
 
 (defn empty-ft [measure-fns]
-  (new [IFingerTreeNode Indexed IPrintable] this
+  (new [IFingerTreeNode ISeq IPersistentStack Indexed IPrintable] this
     (consLeft  [a] (single measure-fns a))
     (consRight [b] (single measure-fns b))
     (measure   []  (iden* measure-fns))
     (measureFns[]  measure-fns)
     (count     []  0)
+    (seq       []  nil)
+    (first     []  nil)
+    (more      []  this)
+    (next      []  nil)
+    (peek      []  nil)
+    (pop       []  this)
     (toString  []  (keys measure-fns))
     (print     [w] (.write w (str "#<empty " this ">")))))
 
 (defn single [measure-fns x]
-  (new [IFingerTreeNode Indexed IPrintable] this
+  (new [IFingerTreeNode ISeq IPersistentStack Indexed IPrintable] this
     (consLeft  [a] (deep (digit measure-fns a) nil (digit measure-fns x)))
     (consRight [b] (deep (digit measure-fns x) nil (digit measure-fns b)))
     (measure   []  (mes* measure-fns x))
+    (measureFns[]  measure-fns)
     (nth       [i] x)
-    (count     []  1)
+    (count     []  (int 1))
+    (seq       []  this)
+    (first     []  x)
+    (more      []  (empty-ft measure-fns))
+    (next      []  nil)
+    (peek      []  x)
+    (pop       []  (empty-ft measure-fns))
     (toString  []  (str x (.measure #^IFingerTreeNode this)))
     (print     [w]
       (binding [*out* w]
@@ -118,9 +131,9 @@
   (new [IFingerTreeNode ISeq IPersistentStack IPrintable] this
     (consLeft  [a] (.consLeft  #^IFingerTreeNode @tree-ref a))
     (consRight [b] (.consRight #^IFingerTreeNode @tree-ref b))
-    (seq       []  this)
+    (seq       []  this) ; empty trees are never delayed
     (first     []  (.first #^ISeq @tree-ref))
-    (more      []  (.next  #^ISeq @tree-ref))
+    (more      []  (.more  #^ISeq @tree-ref))
     (next      []  (.next  #^ISeq @tree-ref))
     (peek      []  (.peek  #^IPersistentStack @tree-ref))
     (pop       []  (.pop   #^IPersistentStack @tree-ref))
@@ -137,18 +150,30 @@
   `(delayed-ft (delay ~tree-expr) ~mval))
 
 (defn to-tree [measure-fns s]
-  (reduce #(.consLeft %1 %2) (empty-ft measure-fns) s))
+  (reduce #(.consRight #^IFingerTreeNode %1 %2) (empty-ft measure-fns) s))
 
-(defn deep-left [pre m suf]
+(defn deep-left [pre, m, #^IFingerTreeNode suf]
   (cond
-    pre   (deep pre m suf)
-    m     (deep (apply digit (.measureFns m) (first m)) (next m) suf) ; TBD delay
-    :else (to-tree suf)))
+    pre     (deep pre m suf)
+    (seq m) (deep
+              (apply digit (.measureFns #^IFingerTreeNode m) (.first #^ISeq m))
+              (.more #^ISeq m) ; TBD delay
+              suf)
+    :else   (to-tree (.measureFns suf) suf)))
+
+(defn deep-right [#^IFingerTreeNode pre, #^IPersistentStack m, suf]
+  (cond
+    suf     (deep pre m suf)
+    (seq m) (deep
+              pre
+              (.pop m) ; TBD delay
+              (apply digit (.measureFns #^IFingerTreeNode m) (.peek m)))
+    :else   (to-tree (.measureFns pre) pre)))
 
 (defn deep [#^IFingerTreeNode pre, #^IFingerTreeNode m, #^IFingerTreeNode suf]
   (assert (= (.measureFns pre) (.measureFns suf)))
   (let [measure-fns (.measureFns pre)
-        mval (if m
+        mval (if (seq m)
                (mes* measure-fns pre m suf)
                (mes* measure-fns pre suf))]
     (new [IFingerTreeNode ISeq IPersistentStack IPrintable] this
@@ -157,7 +182,7 @@
                        (let [[b c d e] pre
                              n (node3 measure-fns c d e)]
                          (deep (digit measure-fns a b)
-                               (if m
+                               (if (seq m)
                                  (delay-ft (.consLeft m n)
                                            (mes* measure-fns n m))
                                  (single measure-fns n))
@@ -167,16 +192,17 @@
                        (let [[e d c b] suf
                              n (node3 measure-fns e d c)]
                          (deep pre
-                               (if m
+                               (if (seq m)
                                  (delay-ft (.consRight m n)
                                            (mes* measure-fns m n))
                                  (single measure-fns n))
                                (digit measure-fns b a)))))
       (seq       []  this)
       (first     []  (first pre))
-      (more      []  (.next this))
-      (next      []  (deep-left (next pre) m suf))
+      (more      []  (deep-left (.next #^ISeq pre) m suf))
+      (next      []  (let [m (.more #^ISeq this)] (when (.seq m) m)))
       (peek      []  (peek suf))
+      (pop       []  (deep-right pre m (.pop #^IPersistentStack suf)))
       (measure   []  mval)
       (measureFns[]  measure-fns)
       (toString  []  "deep-finger-tree")
@@ -188,77 +214,11 @@
           (pr (.measure #^IFingerTreeNode this))
           (print ">"))))))
 
+(defn finger-tree [measure-fns & xs]
+  (to-tree measure-fns xs))
+
 (set! *warn-on-reflection* false)
 ;=====
-
-(defn deep-tree [l m r cache-fns m-vals]
-  [l m r cache-fns m-vals])
-
-(defn tree-vals [[l m r cache-fns m-vals]]
-  (into cache-fns
-        (for [[k [mes red]] cache-fns]
-          [k (reduce red (concat (when-not (empty? l) [(k (.measure l))])
-                                 (when m-vals [(k m-vals)])
-                                 (when-not (empty? r) [(k (.measure r))])))])))
-
-(defn single? [l m r]
-  (and (< (count l) 2) (nil? m) (empty? r)))
-
-(defn ft-empty? [[l m r]]
-  (and (empty? l) (nil? m) (empty? r)))
-
-
-(defn ft-seq [t]
-  (when-not (ft-empty? t)
-    (let [[l m r] t]
-      (lazy-cat l (apply concat (ft-seq (and m @m))) r))))
-
-(defn ft-rseq [t]
-  (when-not (ft-empty? t)
-    (let [[l m r] t]
-      (lazy-cat (reverse r)
-                (mapcat reverse (ft-rseq (and m @m)))
-                (reverse l)))))
-
-(defn conjl [t a]
-  (if-not (ft-empty? t)
-    (let [[l m r cache-fns m-vals] t]
-      (if (< (count l) 4)
-        (if (single? l m r)
-          (deep-tree (digit cache-fns a) nil l (t 3) nil)
-          (deep-tree (.consLeft l a) m r (t 3) m-vals))
-        (let [[b c d e] l
-              n (digit cache-fns c d e)]
-          (deep-tree (digit cache-fns a b)
-                     (delay (conjl (and m @m) n))
-                     r
-                     (t 3)
-                     (if m-vals
-                       (red* cache-fns (.measure n) m-vals)
-                       (.measure n))))))
-    (single t a)))
-
-(defn conjr [t a]
-  (if-not (ft-empty? t)
-    (let [[l m r cache-fns m-vals] t]
-      (if (< (count r) 4)
-        (if (single? l m r)
-          (deep-tree l nil (digit cache-fns a) (t 3) nil)
-          (deep-tree l m (.consRight r a) (t 3) m-vals))
-        (let [[e d c b] r
-              n (digit cache-fns e d c)]
-          (deep-tree l
-                     (delay (conjr (and m @m) n))
-                     (digit cache-fns b a)
-                     (t 3)
-                     (if m-vals
-                       (red* cache-fns m-vals (.measure n))
-                       (.measure n))))))
-    (single t a)))
-
-(defn finger-tree [cache-fns & xs]
-  (reduce conjr (deep-tree nil nil nil cache-fns nil) xs))
-
 
 (defn- nodes [cache-fns [a b c & xs :as s]]
   (assert (> (count s) 1))
