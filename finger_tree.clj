@@ -27,6 +27,7 @@
                   clojure.lang.IFingerTreeNode]
             [app3deep [clojure.lang.ISeq clojure.lang.IFingerTreeNode]
                       clojure.lang.IFingerTreeNode]
+            [split [clojure.lang.IFn Object] clojure.lang.IPersistentVector]
             [measure [] Object]
             [measureFns [] clojure.lang.IPersistentCollection]])
 
@@ -77,7 +78,9 @@
       (split     [p i] (loop [i i, l [], [x & xs] xs-vec]
                          (let [i* (red* measure-fns i (mes* measure-fns x))]
                            (if (p i*)
-                             (asplit l x xs)
+                             (asplit (when (seq l) (apply digit measure-fns l))
+                                     x
+                                     (when xs (apply digit measure-fns xs)))
                              (recur i* (conj l x) xs)))))
       (nth       [i] (nth xs-vec i))
       (count     []  (count xs-vec))
@@ -141,7 +144,7 @@
     (next      []  nil)
     (peek      []  nil)
     (pop       []  this)
-    (toString  []  (keys measure-fns))
+    (toString  []  (str (keys measure-fns)))
     (print     [w] (.write w (str "#<empty " this ">")))))
 
 (defn single [measure-fns x]
@@ -159,6 +162,7 @@
                            x)))
     (measure   []  (mes* measure-fns x))
     (measureFns[]  measure-fns)
+    (split     [p i] (let [e (empty-ft measure-fns)] (asplit e x e)))
     (seq       []  this)
     (rseq      []  (list x))
     (first     []  x)
@@ -180,14 +184,16 @@
     (consRight [b] (.consRight #^IFingerTreeNode @tree-ref b))
     (app3      [ts t2] (.app3  #^IFingerTreeNode @tree-ref ts t2))
     (app3deep  [ts t1] (.app3deep #^IFingerTreeNode @tree-ref ts t1))
+    (measure   []  mval)
+    (measureFns[]  (.measureFns #^IFingerTreeNode @tree-ref))
+    (split     [p i] (.split #^IFingerTreeNode @tree-ref p i))
     (seq       []  this) ; empty trees are never delayed
+    (rseq      []  this)
     (first     []  (.first #^ISeq @tree-ref))
     (more      []  (.more  #^ISeq @tree-ref))
     (next      []  (.next  #^ISeq @tree-ref))
     (peek      []  (.peek  #^IPersistentStack @tree-ref))
     (pop       []  (.pop   #^IPersistentStack @tree-ref))
-    (measure   []  mval)
-    (measureFns[]  (.measureFns #^IFingerTreeNode @tree-ref))
     (toString  []  (.toString #^Object @tree-ref))
     (print     [w]
       (binding [*out* w]
@@ -210,7 +216,8 @@
               suf)
     :else   (to-tree (.measureFns suf) suf)))
 
-(defn deep-right [#^IFingerTreeNode pre, #^IPersistentStack m, suf]
+(defn #^IFingerTreeNode deep-right
+  [#^IFingerTreeNode pre, #^IPersistentStack m, suf]
   (cond
     suf     (deep pre m suf)
     (seq m) (deep
@@ -257,16 +264,33 @@
                                                (concat (.suf t1) ts (.pre t2)))
                                         (.mid t2))
                                  (.suf t2))))
+      (measure   []  mval)
+      (measureFns[]  measure-fns)
+      (split     [p i]
+        (let [vpr (red* measure-fns i (.measure pre))
+              vm  (red* measure-fns vpr (.measure m))]
+          (cond
+            (p vpr) (let [[sl sx sr] (.split pre p i)]
+                      (asplit (to-tree measure-fns sl) sx (deep-left sr m suf)))
+            (p vm) (let [[ml xs mr] (.split m p vpr)
+                         [sl sx sr]
+                           (.split
+                             #^IFingerTreeNode (apply digit measure-fns xs)
+                             p
+                             (red* measure-fns vpr (mes* measure-fns ml)))]
+                     (asplit (deep-right pre ml sl) sx (deep-left sr mr suf)))
+            :else (let [[sl sx sr] (.split suf p vm)]
+                    (asplit (deep-right pre m sl)
+                            sx
+                            (to-tree measure-fns sr))))))
       (seq       []  this)
       (rseq      []  (lazy-seq (cons (.peek #^IPersistentStack this)
-                                     (.rseq (.pop #^IPersistentStack this)))))
+                                     (rseq (.pop #^IPersistentStack this)))))
       (first     []  (.first #^ISeq pre))
       (more      []  (deep-left (.next #^ISeq pre) m suf))
       (next      []  (.seq (.more #^ISeq this)))
       (peek      []  (.peek #^IPersistentStack suf))
       (pop       []  (deep-right pre m (.pop #^IPersistentStack suf)))
-      (measure   []  mval)
-      (measureFns[]  measure-fns)
       (toString  []  "deep-finger-tree")
       (print     [w]
         (binding [*out* w]
@@ -279,27 +303,17 @@
 (defn finger-tree [measure-fns & xs]
   (to-tree measure-fns xs))
 
-(defn consl [t a] (.consLeft #^IFingerTreeNode t a))
-(defn conjr [t a] (.consRight #^IFingerTreeNode t a))
+(defn split-tree [t p]
+  (.split t p (iden* (.measureFns t))))
 
 (defn ft-concat [#^IFingerTreeNode t1 #^IFingerTreeNode t2]
   (assert (= (.measureFns t1) (.measureFns t2))) ; cache-fns must be the same
   (.app3 t1 nil t2))
 
-(comment
+;;=== tests ===
 
-;(defn- split-tree [pred acc [l m r cache-fns m-vals]]
-;  (let [vpr (red* cache-fns acc (.measure l))
-;        vm  (red* cache-fns vpr m-vals)]
-;    (cond
-;      (single? l m r) [(finger-tree cache-fns) (l 0) (finger-tree cache-fns)]
-;      (pred vpr) (let [[sl sx sr] (split-digit pred acc l)]
-;                   [(apply finger-tree cache-fns sl)
-;                    sx
-;                    (deep-tree sr m r cache-fns m-vals)]) ; deepl
-;      (pred vm) 
-
-)
+(defn consl [t a] (.consLeft #^IFingerTreeNode t a))
+(defn conjr [t a] (.consRight #^IFingerTreeNode t a))
 
 (deftest Conj-Seq-Queue
   (let [len 100]
@@ -358,3 +372,12 @@
         (is (= {:size (+ (count a-s) (count b-s))
                 :str (apply str (concat a-s b-s))}
                (.measure (ft-concat a b))))))))
+
+(deftest Split
+  (let [mfns {:size [(constantly 1) + 0] :str [str str ""]}
+        make-item (fn [i] (symbol (str i 'a)))]
+    (doseq [len (range 100)
+            :let [tree (to-tree mfns (map make-item (range len)))]
+            split-i (range len)]
+      (is (= (make-item split-i)
+             (nth (split-tree tree #(< split-i (:size %))) 1))))))
