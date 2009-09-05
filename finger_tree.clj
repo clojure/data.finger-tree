@@ -64,6 +64,8 @@
 (defmethod print-method IPrintable [x w] (.print #^IPrintable x w))
 (prefer-method print-method IPrintable ISeq)
 
+(def asplit vector)
+
 (defn #^IFingerTreeNode digit [measure-fns & xs]
   (assert (<= 1 (count xs) 4))
   (let [xs-vec (vec xs)]
@@ -72,6 +74,11 @@
       (consRight [x] (apply digit measure-fns (conj xs-vec x)))
       (measure   []  (apply mes* measure-fns xs-vec))
       (measureFns[]  measure-fns)
+      (split     [p i] (loop [i i, l [], [x & xs] xs-vec]
+                         (let [i* (red* measure-fns i (mes* measure-fns x))]
+                           (if (p i*)
+                             (asplit l x xs)
+                             (recur i* (conj l x) xs)))))
       (nth       [i] (nth xs-vec i))
       (count     []  (count xs-vec))
       (seq       []  (seq xs-vec))
@@ -280,17 +287,6 @@
   (.app3 t1 nil t2))
 
 (comment
-
-(defn- split-digit
-  "The last arg is a simple collection.  Returns [coll item coll]"
-  [cache-fns pred acc [a & as]]
-  (if-not as
-    [nil a nil]
-    (let [next-acc (red* cache-fns acc (mes* cache-fns a))]
-      (if (pred next-acc)
-        [nil a as]
-        (let [[l x r] (split-digit cache-fns pred next-acc as)]
-          [(cons a l) x r])))))
 
 ;(defn- split-tree [pred acc [l m r cache-fns m-vals]]
 ;  (let [vpr (red* cache-fns acc (.measure l))
