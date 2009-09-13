@@ -84,6 +84,39 @@
   `(~'delayed-ft (delay ~tree-expr) ~mval))
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
 
+(defmacro #^{:private true} make-digit [measure-fns & items]
+  (let [i (gensym "i_")]
+    `(new [IDigit IPrintable] this#
+      (consLeft   [x#] (~'digit ~measure-fns x# ~@items))
+      (consRight  [x#] (~'digit ~measure-fns ~@items x#))
+      (measure    [] (~'mes* ~measure-fns ~@items))
+      (measureFns [] ~measure-fns)
+      (split      [p# ~i] (loop [~i ~i, l# [], [x# & xs#] (list ~@items)]
+                            (let [i*# (~'red* ~measure-fns ~i
+                                            (~'mes* ~measure-fns x#))]
+                              (if (p# i*#)
+                                [(when (seq l#) (apply ~'digit ~measure-fns l#))
+                                  x#
+                                  (when xs# (apply ~'digit ~measure-fns xs#))]
+                                (recur i*# (conj l# x#) xs#)))))
+      (nth        [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
+                                       items
+                                       (range (count items)))))
+      (count      [] ~(count items))
+      (seq        [] (list ~@items))
+      (first      [] ~(first items))
+      (more       [] ~(if (> (count items) 1)
+                        `(~'digit ~measure-fns ~@(next items))
+                        `(~'empty-ft ~measure-fns)))
+      (next       [] ~(when (> (count items) 1)
+                        `(~'digit ~measure-fns ~@(next items))))
+      (peek       [] ~(last items))
+      (pop        [] ~(if (> (count items) 1)
+                        `(~'digit ~measure-fns ~@(drop-last items))
+                        `(~'empty-ft ~measure-fns)))
+      (toString   [] (str ~@(interpose " " items)))
+      (print      [w#] (.write w# (str "#<digit " this# ">"))))))
+
 (letfn
  [(iden* [measure-fns]
     (into measure-fns (for [[k [_ _ iden]] measure-fns] [k iden])))
@@ -128,36 +161,11 @@
           (toString   []  (str lst mval))
           (print      [w] (.write w (str "#<node " this ">")))))))
 
-  (digit [measure-fns & xs]
-    (assert (<= 1 (count xs) 4))
-    (let [xs-vec (vec xs)]
-      (new [IDigit IPrintable] this
-        (consLeft  [x] (apply digit measure-fns x xs-vec))
-        (consRight [x] (apply digit measure-fns (conj xs-vec x)))
-        (measure   []  (apply mes* measure-fns xs-vec))
-        (measureFns[]  measure-fns)
-        (split     [p i] (loop [i i, l [], [x & xs] xs-vec]
-                          (let [i* (red* measure-fns i (mes* measure-fns x))]
-                            (if (p i*)
-                              [(when (seq l) (apply digit measure-fns l))
-                               x
-                               (when xs (apply digit measure-fns xs))]
-                              (recur i* (conj l x) xs)))))
-        (nth       [i] (nth xs-vec i))
-        (count     []  (count xs-vec))
-        (seq       []  (seq xs-vec))
-        (first     []  (nth xs-vec 0))
-        (more      []  (if (> (count xs-vec) 1)
-                        (apply digit measure-fns (next xs-vec))
-                        (empty-ft measure-fns)))
-        (next      []  (when (> (count xs-vec) 1)
-                        (apply digit measure-fns (next xs-vec))))
-        (peek      []  (peek xs-vec))
-        (pop       []  (if (> (count xs-vec) 1)
-                        (apply digit measure-fns (pop xs-vec))
-                        (empty-ft measure-fns)))
-        (toString  []  (str xs-vec))
-        (print     [w] (.write w (str "#<digit " this ">"))))))
+  (digit
+    ([measure-fns a]       (make-digit measure-fns a))
+    ([measure-fns a b]     (make-digit measure-fns a b))
+    ([measure-fns a b c]   (make-digit measure-fns a b c))
+    ([measure-fns a b c d] (make-digit measure-fns a b c d)))
 
   (nodes
     ([mfns a b]          (list (node mfns a b)))
