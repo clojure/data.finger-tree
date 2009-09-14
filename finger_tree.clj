@@ -85,20 +85,27 @@
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
 
 (defmacro #^{:private true} make-digit [measure-fns & items]
-  (let [i (gensym "i_")]
+  (let [i (gensym "i_"), p (gensym "p_")]
     `(new [IDigit IPrintable] this#
       (consLeft   [x#] (~'digit ~measure-fns x# ~@items))
       (consRight  [x#] (~'digit ~measure-fns ~@items x#))
       (measure    [] (~'mes* ~measure-fns ~@items))
       (measureFns [] ~measure-fns)
-      (split      [p# ~i] (loop [~i ~i, l# [], [x# & xs#] (list ~@items)]
-                            (let [i*# (~'red* ~measure-fns ~i
-                                            (~'mes* ~measure-fns x#))]
-                              (if (p# i*#)
-                                [(when (seq l#) (apply ~'digit ~measure-fns l#))
-                                  x#
-                                  (when xs# (apply ~'digit ~measure-fns xs#))]
-                                (recur i*# (conj l# x#) xs#)))))
+      (split [~p ~i] ~(letfn [(step [ips [ix & ixs]]
+                                (if (empty? ixs)
+                                   [(when ips `(~'digit ~measure-fns ~@ips))
+                                    ix
+                                    nil]
+                                   `(let [~i (~'red* ~measure-fns
+                                                     ~i
+                                                     (~'mes* ~measure-fns ~ix))]
+                                     (if (~p ~i)
+                                       [~(when ips
+                                           `(~'digit ~measure-fns ~@ips))
+                                         ~ix
+                                         (~'digit ~measure-fns ~@ixs)]
+                                       ~(step (concat ips [ix]) ixs)))))]
+                        (step nil items)))
       (nth        [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
                                        items
                                        (range (count items)))))
