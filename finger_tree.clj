@@ -174,12 +174,35 @@
     ([measure-fns a b c]   (make-digit measure-fns a b c))
     ([measure-fns a b c d] (make-digit measure-fns a b c d)))
 
-  (nodes
-    ([mfns a b]          (list (node mfns a b)))
-    ([mfns a b c]        (list (node mfns a b c)))
-    ([mfns a b c d]      (list (node mfns a b) (node mfns c d)))
-    ([mfns a b c d & xs] (lazy-seq  ; lazy to avoid stack overflow
-                          (cons (node mfns a b c) (apply nodes mfns d xs)))))
+  (nodes [mfns xs]
+    (let [v #^clojure.lang.Indexed (vec xs)
+          c (clojure.lang.RT/count v)]
+      (loop [i (int 0), nds []]
+        (condp == (- c i)
+          (int 2) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i)))))
+          (int 3) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))
+                                      (.nth v (+ (int 2) i)))))
+          (int 4) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))))
+                          (conj (node mfns (.nth v (+ (int 2) i))
+                                      (.nth v (+ (int 3) i)))))
+          (recur (+ (int 3) i)
+                 (-> nds
+                     (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))
+                                 (.nth v (+ (int 2) i))))))))))
+
+  #_(nodes [mfns xs] (loop [xs xs, nds []]
+        (condp == (- c i)
+          (int 2) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i)))))
+          (int 3) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))
+                                      (.nth v (+ (int 2) i)))))
+          (int 4) (-> nds (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))))
+                          (conj (node mfns (.nth v (+ (int 2) i))
+                                      (.nth v (+ (int 3) i)))))
+          (recur (+ (int 4) i)
+                 (-> nds
+                     (conj (node mfns (.nth v i) (.nth v (+ (int 1) i))))
+                     (conj (node mfns (.nth v (+ (int 2) i))
+                                 (.nth v (+ (int 3) i)))))))))
 
   (empty-ft [measure-fns]
     (new [ISeq ITree IPrintable] this
@@ -303,8 +326,9 @@
         (app3deep  [ts t1] (let [t2 #^IDeepTree this]
                             (deep (.pre t1)
                                   (.app3 (.mid t1)
-                                          (apply nodes measure-fns
-                                                (concat (.suf t1) ts (.pre t2)))
+                                          (seq (nodes
+                                            measure-fns
+                                            (concat (.suf t1) ts (.pre t2))))
                                           (.mid t2))
                                   (.suf t2))))
         (measure     [] mval)
