@@ -1,0 +1,48 @@
+Queue:
+(time (count (reduce #(-> % (conjr %2) rest) (reduce consl (empty-ft nil) (range 1e4)) (range 1e6))))
+
+letfn: "Elapsed time: 5043.853495 msecs"
+digit macro: "Elapsed time: 3411.159957 msecs"
+32% better
+
+
+Split:
+(time (let [n 1e4, t (to-tree {:size [(constantly 1) + 0]} (range n))] (dotimes [i n] (split-tree t #(< i (:size %))))))
+
+"Elapsed time: 4408.469664 msecs"
+loopless split digit: "Elapsed time: 4102.303245 msecs"
+later got this for the same code: "Elapsed time: 3976.687969 msecs"
+
+7% better
+
+
+Concat:
+(time (let [t (to-tree nil (range 1e5))] (dotimes [_ 3e4] (ft-concat t t))))
+"Elapsed time: 2402.644912 msecs"
+nodes without apply: "Elapsed time: 2004.185324 msecs"
+16% better
+
+
+Using digit for node and always using a delayed measure cache:
+queue: 3302.095682 (3% better)
+split: 3096.94213 (22% better)
+concat: 1680.462405 (16% better)
+...it's also less code.
+
+Removing the assert in 'deep' helps a bit too:
+queue: 2934.046655
+split: 3086.496488
+concat: 1631.712977
+
+Delay deep's measure:
+queue: 2156.064809
+split: 2471.035156
+concat: 1510.606604
+
+Slightly better 'split' only calling measure/reduce on middle tree when needed.
+split: 2347.711168
+
+
+Note PersistentQueue does queue test in 363.281297 msecs
+(defn t [] (count (reduce #(-> % (conj %2) pop) (reduce conj clojure.lang.PersistentQueue/EMPTY (range 1e4)) (range 1e6))))
+
