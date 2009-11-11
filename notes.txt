@@ -42,6 +42,11 @@ concat: 1510.606604
 Slightly better 'split' only calling measure/reduce on middle tree when needed.
 split: 2347.711168
 
+Reify:
+queue: 2151.073871
+split: 2351.481345
+concat: 1699.367853
+
 
 Note PersistentQueue does queue test in 363.281297 msecs
 (defn t [] (count (reduce #(-> % (conj %2) pop) (reduce conj clojure.lang.PersistentQueue/EMPTY (range 1e4)) (range 1e6))))

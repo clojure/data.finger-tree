@@ -83,12 +83,12 @@
 (defmacro #^{:private true} make-digit [measure-fns & items]
   (let [i (gensym "i_"), p (gensym "p_")]
    `(let [mval# (delay (~'mes* ~measure-fns ~@items))]
-     (new [IDigit IPrintable] this#
-      (consLeft   [x#] (~'digit ~measure-fns x# ~@items))
-      (consRight  [x#] (~'digit ~measure-fns ~@items x#))
-      (measure    [] @mval#)
-      (measureFns [] ~measure-fns)
-      (split [~p ~i] ~(letfn [(step [ips [ix & ixs]]
+     (reify this# [IDigit IPrintable]
+      (.consLeft   [x#] (~'digit ~measure-fns x# ~@items))
+      (.consRight  [x#] (~'digit ~measure-fns ~@items x#))
+      (.measure    [] @mval#)
+      (.measureFns [] ~measure-fns)
+      (.split [~p ~i] ~(letfn [(step [ips [ix & ixs]]
                                 (if (empty? ixs)
                                    [(when ips `(~'digit ~measure-fns ~@ips))
                                     ix
@@ -103,23 +103,23 @@
                                          (~'digit ~measure-fns ~@ixs)]
                                        ~(step (concat ips [ix]) ixs)))))]
                         (step nil items)))
-      (nth        [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
+      (.nth        [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
                                        items
                                        (range (count items)))))
-      (count      [] ~(count items))
-      (seq        [] (list ~@items))
-      (first      [] ~(first items))
-      (more       [] ~(if (> (count items) 1)
+      (.count      [] ~(count items))
+      (.seq        [] (list ~@items))
+      (.first      [] ~(first items))
+      (.more       [] ~(if (> (count items) 1)
                         `(~'digit ~measure-fns ~@(next items))
                         `(~'empty-ft ~measure-fns)))
-      (next       [] ~(when (> (count items) 1)
+      (.next       [] ~(when (> (count items) 1)
                         `(~'digit ~measure-fns ~@(next items))))
-      (peek       [] ~(last items))
-      (pop        [] ~(if (> (count items) 1)
+      (.peek       [] ~(last items))
+      (.pop        [] ~(if (> (count items) 1)
                         `(~'digit ~measure-fns ~@(drop-last items))
                         `(~'empty-ft ~measure-fns)))
-      (toString   [] (str ~@(interpose " " items)))
-      (print      [w#] (.write w# (str "#<digit " this# ">")))))))
+      (.toString   [] (str ~@(interpose " " items)))
+      (.print      [w#] (.write w# (str "#<digit " this# ">")))))))
 
 (letfn
  [(iden* [measure-fns]
@@ -169,50 +169,50 @@
                                    (v (+ (int 2) i)))))))))))
 
   (empty-ft [measure-fns]
-    (new [ISeq ITree IPrintable] this
-      (consLeft    [a] (single measure-fns a))
-      (consRight   [b] (single measure-fns b))
-      (app3        [ts t2] (reduce consl t2 (reverse ts)))
-      (app3deep    [ts t1] (reduce conjr t1 ts))
-      (measure     [] (iden* measure-fns))
-      (measureFns  [] measure-fns)
-      (measureMore [] (iden* measure-fns))
-      (measurePop  [] (iden* measure-fns))
-      (count       [] 0)
-      (seq         [] nil)
-      (rseq        [] nil)
-      (first       [] nil)
-      (more        [] this)
-      (next        [] nil)
-      (peek        [] nil)
-      (pop         [] this)
-      (toString    [] (str (keys measure-fns)))
-      (print       [w] (.write w (str "#<empty " this ">")))))
+    (reify this [ISeq ITree IPrintable]
+      (.consLeft    [a] (single measure-fns a))
+      (.consRight   [b] (single measure-fns b))
+      (.app3        [ts t2] (reduce consl t2 (reverse ts)))
+      (.app3deep    [ts t1] (reduce conjr t1 ts))
+      (.measure     [] (iden* measure-fns))
+      (.measureFns  [] measure-fns)
+      (.measureMore [] (iden* measure-fns))
+      (.measurePop  [] (iden* measure-fns))
+      (.count       [] 0)
+      (.seq         [] nil)
+      (.rseq        [] nil)
+      (.first       [] nil)
+      (.more        [] this)
+      (.next        [] nil)
+      (.peek        [] nil)
+      (.pop         [] this)
+      (.toString    [] (str (keys measure-fns)))
+      (.print       [w] (.write w (str "#<empty " this ">")))))
 
   (single [measure-fns x]
-    (new [ITree IPrintable] this
-      (consLeft  [a] (deep (digit measure-fns a)
+    (reify this [ITree IPrintable]
+      (.consLeft  [a] (deep (digit measure-fns a)
                           (empty-ft measure-fns)
                           (digit measure-fns x)))
-      (consRight [b] (deep (digit measure-fns x)
+      (.consRight [b] (deep (digit measure-fns x)
                           (empty-ft measure-fns)
                           (digit measure-fns b)))
-      (app3     [ts t2] (consl (.app3 #^ITree (empty-ft measure-fns) ts t2) x))
-      (app3deep [ts t1] (conjr (reduce conjr t1 ts) x))
-      (measure     [] (mes* measure-fns x))
-      (measureFns  [] measure-fns)
-      (measureMore [] (iden* measure-fns))
-      (measurePop  [] (iden* measure-fns))
-      (split       [p i] (let [e (empty-ft measure-fns)] [e x e]))
-      (seq         [] this)
-      (rseq        [] (list x))
-      (first       [] x)
-      (more        [] (empty-ft measure-fns))
-      (next        [] nil)
-      (peek        [] x)
-      (pop         [] (empty-ft measure-fns))
-      (toString    [] (str x " " (.measure #^ITree this)))
-      (print [w]
+      (.app3     [ts t2] (consl (.app3 #^ITree (empty-ft measure-fns) ts t2) x))
+      (.app3deep [ts t1] (conjr (reduce conjr t1 ts) x))
+      (.measure     [] (mes* measure-fns x))
+      (.measureFns  [] measure-fns)
+      (.measureMore [] (iden* measure-fns))
+      (.measurePop  [] (iden* measure-fns))
+      (.split       [p i] (let [e (empty-ft measure-fns)] [e x e]))
+      (.seq         [] this)
+      (.rseq        [] (list x))
+      (.first       [] x)
+      (.more        [] (empty-ft measure-fns))
+      (.next        [] nil)
+      (.peek        [] x)
+      (.pop         [] (empty-ft measure-fns))
+      (.toString    [] (str x " " (.measure #^ITree this)))
+      (.print [w]
         (binding [*out* w]
           (print "#<single ")
           (pr x)
@@ -220,25 +220,25 @@
           (print ">")))))
 
   (delayed-ft [tree-ref mval]
-    (new [ITree IPrintable] this
-      (consLeft    [a] (.consLeft  #^ITree @tree-ref a))
-      (consRight   [b] (.consRight #^ITree @tree-ref b))
-      (app3        [ts t2] (.app3  #^ITree @tree-ref ts t2))
-      (app3deep    [ts t1] (.app3deep #^ITree @tree-ref ts t1))
-      (measure     []  mval)
-      (measureFns  []  (.measureFns  #^ITree @tree-ref))
-      (measureMore []  (.measureMore #^ITree @tree-ref))
-      (measurePop  []  (.measurePop  #^ITree @tree-ref))
-      (split       [p i] (.split #^ITree @tree-ref p i))
-      (seq         []  this)
-      (rseq        []  this)
-      (first       []  (.first #^ITree @tree-ref))
-      (more        []  (.more  #^ITree @tree-ref))
-      (next        []  (.next  #^ITree @tree-ref))
-      (peek        []  (.peek  #^ITree @tree-ref))
-      (pop         []  (.pop   #^ITree @tree-ref))
-      (toString    []  (.toString #^ITree @tree-ref))
-      (print [w]
+    (reify this [ITree IPrintable]
+      (.consLeft    [a] (.consLeft  #^ITree @tree-ref a))
+      (.consRight   [b] (.consRight #^ITree @tree-ref b))
+      (.app3        [ts t2] (.app3  #^ITree @tree-ref ts t2))
+      (.app3deep    [ts t1] (.app3deep #^ITree @tree-ref ts t1))
+      (.measure     []  mval)
+      (.measureFns  []  (.measureFns  #^ITree @tree-ref))
+      (.measureMore []  (.measureMore #^ITree @tree-ref))
+      (.measurePop  []  (.measurePop  #^ITree @tree-ref))
+      (.split       [p i] (.split #^ITree @tree-ref p i))
+      (.seq         []  this)
+      (.rseq        []  this)
+      (.first       []  (.first #^ITree @tree-ref))
+      (.more        []  (.more  #^ITree @tree-ref))
+      (.next        []  (.next  #^ITree @tree-ref))
+      (.peek        []  (.peek  #^ITree @tree-ref))
+      (.pop         []  (.pop   #^ITree @tree-ref))
+      (.toString    []  (.toString #^ITree @tree-ref))
+      (.print [w]
         (binding [*out* w]
           (print "#<delay ")
           (pr @tree-ref)
@@ -269,33 +269,33 @@
           mval (delay (if (.seq m)
                         (mes* measure-fns pre m suf)
                         (mes* measure-fns pre suf)))]
-      (new [IDeepTree IPrintable] this
-        (pre [] pre)
-        (mid [] m)
-        (suf [] suf)
-        (consLeft  [a] (if (< (count pre) 4)
+      (reify this [IDeepTree IPrintable]
+        (.pre [] pre)
+        (.mid [] m)
+        (.suf [] suf)
+        (.consLeft  [a] (if (< (count pre) 4)
                         (deep (.consLeft pre a) m suf)
                         (let [[b c d e] pre
                               n (digit measure-fns c d e)]
                           (deep (digit measure-fns a b) (.consLeft m n) suf))))
-        (consRight [a] (if (< (count suf) 4)
+        (.consRight [a] (if (< (count suf) 4)
                         (deep pre m (conjr suf a))
                         (let [[e d c b] suf
                               n (digit measure-fns e d c)]
                           (deep pre (conjr m n) (digit measure-fns b a)))))
-        (measureMore [] (mes* measure-fns (next pre) m suf))
-        (measurePop  [] (mes* measure-fns pre m (pop suf)))
-        (app3      [ts t2] (.app3deep t2 ts this))
-        (app3deep  [ts t1] (let [t2 #^IDeepTree this]
+        (.measureMore [] (mes* measure-fns (next pre) m suf))
+        (.measurePop  [] (mes* measure-fns pre m (pop suf)))
+        (.app3      [ts t2] (.app3deep t2 ts this))
+        (.app3deep  [ts t1] (let [t2 #^IDeepTree this]
                             (deep (.pre t1)
                                   (.app3 (.mid t1)
                                          (nodes measure-fns
                                                 (concat (.suf t1) ts (.pre t2)))
                                          (.mid t2))
                                   (.suf t2))))
-        (measure     [] @mval)
-        (measureFns  [] measure-fns)
-        (split [p i]
+        (.measure     [] @mval)
+        (.measureFns  [] measure-fns)
+        (.split [p i]
           (let [vpr (red* measure-fns i (.measure pre))]
             (if (p vpr)
               (let [[sl sx sr] (.split pre p i)]
@@ -311,16 +311,16 @@
                     [(deep-right pre ml sl) sx (deep-left sr mr suf)])
                   (let [[sl sx sr] (.split suf p vm)]
                     [(deep-right pre m sl) sx (to-tree measure-fns sr)]))))))
-        (seq       []  this)
-        (rseq      []  (lazy-seq (cons (.peek #^IDeepTree this)
+        (.seq       []  this)
+        (.rseq      []  (lazy-seq (cons (.peek #^IDeepTree this)
                                       (rseq (.pop #^IDeepTree this)))))
-        (first     []  (.first pre))
-        (more      []  (deep-left (.more pre) m suf))
-        (next      []  (.seq (.more #^IDeepTree this)))
-        (peek      []  (.peek suf))
-        (pop       []  (deep-right pre m (.pop suf)))
-        (toString  []  "deep-finger-tree")
-        (print     [w]
+        (.first     []  (.first pre))
+        (.more      []  (deep-left (.more pre) m suf))
+        (.next      []  (.seq (.more #^IDeepTree this)))
+        (.peek      []  (.peek suf))
+        (.pop       []  (deep-right pre m (.pop suf)))
+        (.toString  []  "deep-finger-tree")
+        (.print     [w]
           (binding [*out* w]
             (print "#<deep ")
             (pr pre m suf)
