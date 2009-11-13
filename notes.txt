@@ -1,5 +1,5 @@
 Queue:
-(time (count (reduce #(-> % (conjr %2) rest) (reduce consl (empty-ft nil) (range 1e4)) (range 1e6))))
+(time (count (reduce #(-> % (conjr %2) rest) (reduce consl (EmptyTree nil) (range 1e4)) (range 1e6))))
 
 letfn: "Elapsed time: 5043.853495 msecs"
 digit macro: "Elapsed time: 3411.159957 msecs"
@@ -47,6 +47,10 @@ queue: 2151.073871
 split: 2351.481345
 concat: 1699.367853
 
+defprotocol:
+queue: 6234.505356
+split: 3824.236948
+concat: 1958.039438
 
 Note PersistentQueue does queue test in 363.281297 msecs
 (defn t [] (count (reduce #(-> % (conj %2) pop) (reduce conj clojure.lang.PersistentQueue/EMPTY (range 1e4)) (range 1e6))))
