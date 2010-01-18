@@ -52,6 +52,16 @@ queue: 6234.505356
 split: 3824.236948
 concat: 1958.039438
 
+protocol call site caching:
+queue: 5380.091688
+split: 3552.108167
+concat: 1679.4733
+
+protocol methods inside deftype:
+queue: 6115.087433
+split: 2851.264586
+concat: 1532.471135
+
 Note PersistentQueue does queue test in 363.281297 msecs
 (defn t [] (count (reduce #(-> % (conj %2) pop) (reduce conj clojure.lang.PersistentQueue/EMPTY (range 1e4)) (range 1e6))))
 

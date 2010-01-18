@@ -1,4 +1,4 @@
-;(ns clojure.lang.fingertree)
+(ns clojure.lang.fingertree)
 (comment ; TODO:
 
 - test performance
@@ -12,7 +12,6 @@
 - test deque complexity
 - confirm recursion is bounded, though perhaps O(log n) growth is slow enough
 )
-
 
 (defprotocol DoubleSeq
   (consl [s a] "Append a to the left-hand side of s")
@@ -31,8 +30,10 @@
   (measureMore [o] "Return the measure of o not including the leftmost item")
   (measurePop [o] "Return the measure of o not including the rightmost item"))
 
+
 (use 'clojure.test)
-(import '(clojure.lang ISeq IPersistentStack Reversible Indexed))
+(import '(clojure.lang Seqable ISeq IPersistentStack IPersistentCollection
+                       Reversible Indexed))
 (declare EmptyTree SingleTree DeepTree digit deep)
 
 (defmacro #^{:private true} defdigit [& items]
@@ -41,56 +42,53 @@
         o (gensym "o_")
         typename (symbol (str "Digit" (count items)))
         this-items (map #(list (keyword %) o) items)]
-   `(do
-      (deftype ~typename [~@items ~'measure-fns ~'measure-ref]
-               [ISeq Indexed IPersistentStack]
-        ;Seqable:
-          (.seq [] (list ~@items))
-        ;Indexed
-          (.count [] ~(count items)) ; not needed?
-          (.nth [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
-                                     items
-                                     (range (count items)))))
-        ;IPersistentCollection:
-          (.cons [x]) ; TBD
-          (.empty []) ; TBD ; not needed?
-          (.equiv [x]) ; TBD
-        ;ISeq:
-          (.first      [] ~(first items))
-          (.more       [] ~(if (> (count items) 1)
-                            `(digit ~'measure-fns ~@(next items))
-                            `(EmptyTree ~'measure-fns)))
-          (.next       [] ~(when (> (count items) 1)
-                            `(digit ~'measure-fns ~@(next items))))
-        ;IPersistentStack
-          (.peek       [] ~(last items))
-          (.pop        [] ~(if (> (count items) 1)
-                            `(digit ~'measure-fns ~@(drop-last items))
-                            `(EmptyTree ~'measure-fns))))
-      (extend ~(keyword (str *ns*) (str typename))
-        ~'DoubleSeq
-          {:consl (fn [~o x#] (digit (:measure-fns ~o) x# ~@this-items))
-           :conjr (fn [~o x#] (digit (:measure-fns ~o) ~@this-items x#))}
-        ~'Measured
-          {:measure (fn [o#] @(:measure-ref o#))
-           :measureFns (fn [o#] (:measure-fns o#))} ; not needed?
-        ~'Splittable
-          {:split (fn [~o ~p ~i]
-                    ~(letfn [(step [ips [ix & ixs]]
-                               (if (empty? ixs)
-                                 [(when ips `(digit (:measure-fns ~o) ~@ips))
-                                  ix
-                                  nil]
-                                 `(let [~i (red* (:measure-fns ~o)
-                                                 ~i
-                                                 (mes* (:measure-fns ~o) ~ix))]
-                                    (if (~p ~i)
-                                      [~(when ips
-                                          `(digit (:measure-fns ~o) ~@ips))
-                                       ~ix
-                                       (digit (:measure-fns ~o) ~@ixs)]
-                                      ~(step (concat ips [ix]) ixs)))))]
-                       (step nil this-items)))}))))
+   `(deftype ~typename [~@items ~'measure-fns ~'measure-ref] :as ~o
+      Seqable
+        (seq [] (list ~@items))
+      Indexed
+        (count [] ~(count items)) ; not needed?
+        (nth [~i] (cond ~@(mapcat (fn [sym n] [`(== ~i (int ~n)) sym])
+                                    items
+                                    (range (count items)))))
+      IPersistentCollection
+        (cons [x]) ; TBD
+        (empty []) ; TBD ; not needed?
+        (equiv [x]) ; TBD
+      ISeq
+        (first      [] ~(first items))
+        (more       [] ~(if (> (count items) 1)
+                          `(digit ~'measure-fns ~@(next items))
+                          `(EmptyTree ~'measure-fns)))
+        (next       [] ~(when (> (count items) 1)
+                          `(digit ~'measure-fns ~@(next items))))
+      IPersistentStack
+        (peek       [] ~(last items))
+        (pop        [] ~(if (> (count items) 1)
+                          `(digit ~'measure-fns ~@(drop-last items))
+                          `(EmptyTree ~'measure-fns)))
+      DoubleSeq
+        (consl [x#] (digit (:measure-fns ~o) x# ~@this-items))
+        (conjr [x#] (digit (:measure-fns ~o) ~@this-items x#))
+      Measured
+        (measure [] @(:measure-ref ~o))
+        (measureFns [] (:measure-fns ~o)) ; not needed?
+      Splittable
+        (split [~p ~i]
+                ~(letfn [(step [ips [ix & ixs]]
+                          (if (empty? ixs)
+                            [(when ips `(digit (:measure-fns ~o) ~@ips))
+                              ix
+                              nil]
+                            `(let [~i (red* (:measure-fns ~o)
+                                            ~i
+                                            (mes* (:measure-fns ~o) ~ix))]
+                                (if (~p ~i)
+                                  [~(when ips
+                                      `(digit (:measure-fns ~o) ~@ips))
+                                  ~ix
+                                  (digit (:measure-fns ~o) ~@ixs)]
+                                  ~(step (concat ips [ix]) ixs)))))]
+                  (step nil this-items))))))
 
 (defmacro #^{:private true} make-digit [measure-fns & items]
   (let [typename (symbol (str "Digit" (count items)))]
@@ -144,108 +142,102 @@
                       (conj (digit mfns (v i) (v (+ (int 1) i))
                                    (v (+ (int 2) i)))))))))))
 
-(deftype EmptyTree [measure-fns] [ISeq IPersistentStack Reversible]
-  ;Seqable:
-    (.seq [] nil)
-  ;IPersistentCollection:
-    (.cons [x]) ; TBD
-    (.count [] 0) ; not needed?
-    (.empty [] this)
-    (.equiv [x]) ; TBD
-  ;ISeq:
-    (.first [] nil)
-    (.more [] this)
-    (.next [] nil)
-  ;IPersistentStack:
-    (.peek [] nil)
-    (.pop [] this)
-  ;Reversible
-    (.rseq [] nil))
-
-(extend ::EmptyTree 
+(deftype EmptyTree [measure-fns] :as this
+  Seqable
+    (seq [] nil)
+  IPersistentCollection
+    (cons [x]) ; TBD
+    (count [] 0) ; not needed?
+    (empty [] this)
+    (equiv [x]) ; TBD
+  ISeq
+    (first [] nil)
+    (more [] this)
+    (next [] nil)
+  IPersistentStack
+    (peek [] nil)
+    (pop [] this)
+  Reversible
+    (rseq [] nil)
   DoubleSeq
-    {:consl (fn [s a] (SingleTree (:measure-fns s) a))
-     :conjr (fn [s b] (SingleTree (:measure-fns s) b))}
+    (consl [a] (SingleTree (:measure-fns this) a))
+    (conjr [b] (SingleTree (:measure-fns this) b))
   Measured
-    {:measure (fn [o] (iden* (:measure-fns o)))
-     :measureFns (fn [o] (:measure-fns o))} ; not needed?
+    (measure [] (iden* (:measure-fns this)))
+    (measureFns [] (:measure-fns this)) ; not needed?
 ;  Splittable
-;    {:split (fn [o pred iden])} ; TBD -- not needed??
+;    (split [pred iden]) ; TBD -- not needed??
   Tree
-    {:app3 (fn [t1 ts t2] (reduce consl t2 (reverse ts)))
-     :app3deep (fn [t2 ts t1] (reduce conjr t1 ts))
-     :measureMore (fn [o] (iden* (:measure-fns o)))
-     :measurePop (fn [o] (iden* (:measure-fns o)))})
+    (app3 [ts t2] (reduce consl t2 (reverse ts)))
+    (app3deep [ts t1] (reduce conjr t1 ts))
+    (measureMore [] (iden* (:measure-fns this)))
+    (measurePop [] (iden* (:measure-fns this))))
 
-(deftype SingleTree [measure-fns x] [ISeq IPersistentStack Reversible]
-  ;Seqable:
-    (.seq [] this)
-  ;IPersistentCollection:
-    (.cons [x]) ; TBD
-    (.count []) ; not needed?
-    (.empty [] (EmptyTree measure-fns)) ; not needed?
-    (.equiv [x]) ; TBD
-  ;ISeq:
-    (.first [] x)
-    (.more [] (EmptyTree measure-fns))
-    (.next [] nil)
-  ;IPersistentStack:
-    (.peek [] x)
-    (.pop [] (EmptyTree measure-fns))
-  ;Reversible
-    (.rseq [] (list x))) ; not this because tree ops can't be reversed
-
-(extend ::SingleTree 
+(deftype SingleTree [measure-fns x] :as this
+  Seqable
+    (seq [] this)
+  IPersistentCollection
+    (cons [x]) ; TBD
+    (count []) ; not needed?
+    (empty [] (EmptyTree measure-fns)) ; not needed?
+    (equiv [x]) ; TBD
+  ISeq
+    (first [] x)
+    (more [] (EmptyTree measure-fns))
+    (next [] nil)
+  IPersistentStack
+    (peek [] x)
+    (pop [] (EmptyTree measure-fns))
+  Reversible
+    (rseq [] (list x)) ; not this because tree ops can't be reversed
   DoubleSeq
-    {:consl (fn [s a] (deep (digit (:measure-fns s) a)
-                            (EmptyTree (:measure-fns s))
-                            (digit (:measure-fns s) (:x s))))
-     :conjr (fn [s b] (deep (digit (:measure-fns s) (:x s))
-                            (EmptyTree (:measure-fns s))
-                            (digit (:measure-fns s) b)))}
+    (consl [a] (deep (digit (:measure-fns this) a)
+                     (EmptyTree (:measure-fns this))
+                     (digit (:measure-fns this) (:x this))))
+    (conjr [b] (deep (digit (:measure-fns this) (:x this))
+                     (EmptyTree (:measure-fns this))
+                     (digit (:measure-fns this) b)))
   Measured
-    {:measure (fn [o] (mes* (:measure-fns o) (:x o)))
-     :measureFns (fn [o] (:measure-fns o))} ; not needed?
+    (measure [] (mes* (:measure-fns this) (:x this)))
+    (measureFns [] (:measure-fns this)) ; not needed?
   Splittable
-    {:split (fn [o pred iden] (let [e (empty o)] [e (:x o) e]))}
+    (split [pred iden] (let [e (empty this)] [e (:x this) e]))
   Tree
-    {:app3 (fn [t1 ts t2] (consl (app3 (empty t1) ts t2) (:x t1)))
-     :app3deep (fn [t2 ts t1] (conjr (reduce conjr t1 ts) (:x t2)))
-     :measureMore (fn [o] (iden* (:measure-fns o)))
-     :measurePop (fn [o] (iden* (:measure-fns o)))})
+    (app3 [ts t2] (consl (app3 (empty this) ts t2) (:x this)))
+    (app3deep [ts t1] (conjr (reduce conjr t1 ts) (:x this)))
+    (measureMore [] (iden* (:measure-fns this)))
+    (measurePop [] (iden* (:measure-fns this))))
 
-(deftype DelayedTree [tree-ref mval] [ISeq IPersistentStack Reversible]
-  ;Seqable:
-    (.seq [] this)
-  ;IPersistentCollection:
-    (.cons [x]) ; TBD
-    (.count []) ; not needed?
-    (.empty [] (empty @tree-ref))
-    (.equiv [x]) ; TBD
-  ;ISeq:
-    (.first [] (first @tree-ref))
-    (.more [] (rest @tree-ref))
-    (.next [] (next @tree-ref))
-  ;IPersistentStack:
-    (.peek [] (peek @tree-ref))
-    (.pop [] (pop @tree-ref))
-  ;Reversible
-    (.rseq [] (rseq @tree-ref))) ; not this because tree ops can't be reversed
-
-(extend ::DelayedTree
+(deftype DelayedTree [tree-ref mval] :as this
+  Seqable
+    (seq [] this)
+  IPersistentCollection
+    (cons [x]) ; TBD
+    (count []) ; not needed?
+    (empty [] (empty @tree-ref))
+    (equiv [x]) ; TBD
+  ISeq
+    (first [] (first @tree-ref))
+    (more [] (rest @tree-ref))
+    (next [] (next @tree-ref))
+  IPersistentStack
+    (peek [] (peek @tree-ref))
+    (pop [] (pop @tree-ref))
+  Reversible
+    (rseq [] (rseq @tree-ref)) ; not this because tree ops can't be reversed
   DoubleSeq
-    {:consl (fn [s a] (consl @(:tree-ref s) a))
-     :conjr (fn [s b] (conjr @(:tree-ref s) b))}
+    (consl [a] (consl @(:tree-ref this) a))
+    (conjr [b] (conjr @(:tree-ref this) b))
   Measured
-    {:measure (fn [o] (:mval o))
-     :measureFns (fn [o] (measureFns @(:tree-ref o)))} ; not needed?
+    (measure [] (:mval this))
+    (measureFns [] (measureFns @(:tree-ref this))) ; not needed?
   Splittable
-    {:split (fn [o pred iden] (split @(:tree-ref o) pred iden))}
+    (split [pred iden] (split @(:tree-ref this) pred iden))
   Tree
-    {:app3 (fn [t1 ts t2] (app3 @(:tree-ref t1) ts t2))
-     :app3deep (fn [t2 ts t1] (app3deep @(:tree-ref t2) ts t1))
-     :measureMore (fn [o] (measureMore @(:tree-ref o)))
-     :measurePop (fn [o] (measurePop @(:tree-ref o)))})
+    (app3 [ts t2] (app3 @(:tree-ref this) ts t2))
+    (app3deep [ts t1] (app3deep @(:tree-ref this) ts t1))
+    (measureMore [] (measureMore @(:tree-ref this)))
+    (measurePop [] (measurePop @(:tree-ref this))))
 
 (defmacro #^{:private true} delay-ft [tree-expr mval]
   `(DelayedTree (delay ~tree-expr) ~mval))
@@ -278,50 +270,47 @@
                        (mes* measure-fns pre m suf)
                        (mes* measure-fns pre suf))))))
 
-(deftype DeepTree [measure-fns pre mid suf mval]
-  [ISeq IPersistentStack Reversible]
-  ;Seqable:
-    (.seq [] this)
-  ;IPersistentCollection:
-    (.cons [x]) ; TBD
-    (.count []) ; not needed?
-    (.empty [] (empty pre))
-    (.equiv [x]) ; TBD
-  ;ISeq:
-    (.first [] (first pre))
-    (.more [] (deep-left (rest pre) mid suf))
-    (.next [] (seq (rest this)))
-  ;IPersistentStack:
-    (.peek [] (peek suf))
-    (.pop [] (deep-right pre mid (pop suf)))
-  ;Reversible
-    (.rseq [] (lazy-seq (cons (peek this) (rseq (pop this))))))
-
-(extend ::DeepTree
+(deftype DeepTree [measure-fns pre mid suf mval] :as this
+  Seqable
+    (seq [] this)
+  IPersistentCollection
+    (cons [x]) ; TBD
+    (count []) ; not needed?
+    (empty [] (empty pre))
+    (equiv [x]) ; TBD
+  ISeq
+    (first [] (first pre))
+    (more [] (deep-left (rest pre) mid suf))
+    (next [] (seq (rest this)))
+  IPersistentStack
+    (peek [] (peek suf))
+    (pop [] (deep-right pre mid (pop suf)))
+  Reversible
+    (rseq [] (lazy-seq (cons (peek this) (rseq (pop this)))))
   DoubleSeq
-    {:consl (fn [s a] (if (< (count (:pre s)) 4)
-                        (deep (consl (:pre s) a) (:mid s) (:suf s))
-                        (let [[b c d e] (:pre s)
-                              n (digit (:measure-fns s) c d e)]
-                          (deep (digit (:measure-fns s) a b)
-                                (consl (:mid s) n)
-                                (:suf s)))))
-     :conjr (fn [s a] (if (< (count (:suf s)) 4)
-                        (deep (:pre s) (:mid s) (conjr (:suf s) a))
-                        (let [[e d c b] (:suf s)
-                              n (digit (:measure-fns s) e d c)]
-                          (deep (:pre s)
-                                (conjr (:mid s) n)
-                                (digit (:measure-fns s) b a)))))}
+    (consl [a] (if (< (count (:pre this)) 4)
+                 (deep (consl (:pre this) a) (:mid this) (:suf this))
+                 (let [[b c d e] (:pre this)
+                       n (digit (:measure-fns this) c d e)]
+                   (deep (digit (:measure-fns this) a b)
+                         (consl (:mid this) n)
+                         (:suf this)))))
+    (conjr [a] (if (< (count (:suf this)) 4)
+                 (deep (:pre this) (:mid this) (conjr (:suf this) a))
+                 (let [[e d c b] (:suf this)
+                       n (digit (:measure-fns this) e d c)]
+                   (deep (:pre this)
+                         (conjr (:mid this) n)
+                         (digit (:measure-fns this) b a)))))
   Measured
-    {:measure (fn [o] @(:mval o))
-     :measureFns (fn [o] (:measure-fns (:pre o)))} ; not needed?
+    (measure [] @(:mval this))
+    (measureFns [] (:measure-fns (:pre this))) ; not needed?
   Splittable
-    {:split (fn [o pred iden]
-              (let [pre (:pre o)
-                    mid (:mid o)
-                    suf (:suf o)
-                    measure-fns (:measure-fns o)
+    (split [pred iden]
+              (let [pre (:pre this)
+                    mid (:mid this)
+                    suf (:suf this)
+                    measure-fns (:measure-fns this)
                     vpr (red* measure-fns iden (measure pre))]
                 (if (pred vpr)
                   (let [[sl sx sr] (split pre pred iden)]
@@ -338,20 +327,20 @@
                       (let [[sl sx sr] (split suf pred vm)]
                         [(deep-right pre mid sl)
                          sx
-                         (to-tree measure-fns sr)]))))))}
+                         (to-tree measure-fns sr)]))))))
   Tree
-    {:app3 (fn [t1 ts t2] (app3deep t2 ts t1))
-     :app3deep (fn [t2 ts t1]
+    (app3 [ts t2] (app3deep t2 ts this))
+    (app3deep [ts t1]
                  (deep (:pre t1)
                        (app3 (:mid t1)
-                             (nodes (:measure-fns t2)
-                                    (concat (:suf t1) ts (:pre t2)))
-                             (:mid t2))
-                       (:suf t2)))
-     :measureMore (fn [o] (mes* (:measure-fns o)
-                                (next (:pre o)) (:mid o) (:suf o)))
-     :measurePop  (fn [o] (mes* (:measure-fns o)
-                                (:pre o) (:mid o) (pop (:suf o))))})
+                             (nodes (:measure-fns this)
+                                    (concat (:suf t1) ts (:pre this)))
+                             (:mid this))
+                       (:suf this)))
+    (measureMore [] (mes* (:measure-fns this)
+                                (next (:pre this)) (:mid this) (:suf this)))
+    (measurePop  [] (mes* (:measure-fns this)
+                                (:pre this) (:mid this) (pop (:suf this)))))
 
  (defn finger-tree [measure-fns & xs]
    (to-tree measure-fns xs))
