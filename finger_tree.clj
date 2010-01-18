@@ -85,8 +85,8 @@
                                 (if (~p ~i)
                                   [~(when ips
                                       `(digit (:measure-fns ~o) ~@ips))
-                                  ~ix
-                                  (digit (:measure-fns ~o) ~@ixs)]
+                                   ~ix
+                                   (digit (:measure-fns ~o) ~@ixs)]
                                   ~(step (concat ips [ix]) ixs)))))]
                   (step nil this-items))))))
 
@@ -99,21 +99,21 @@
     (into measure-fns (for [[k [_ _ iden]] measure-fns] [k iden])))
 
 (defn mes* [measure-fns & xs]
-    (into measure-fns
-          (if (and (first xs) (satisfies? Measured (first xs)))
-            (let [mes-maps (map #(if %
-                                  (measure %)
-                                  (iden* measure-fns))
-                                xs)]
-              (for [[k [mes red]] measure-fns]
-                [k (reduce red (map k mes-maps))]))
+  (into measure-fns
+        (if (and (first xs) (satisfies? Measured (first xs)))
+          (let [mes-maps (map #(if %
+                                 (measure %)
+                                 (iden* measure-fns))
+                              xs)]
             (for [[k [mes red]] measure-fns]
-              [k (reduce red (map mes xs))]))))
+              [k (reduce red (map k mes-maps))]))
+          (for [[k [mes red]] measure-fns]
+            [k (reduce red (map mes xs))]))))
 
 (defn red* [measure-fns v1 v2]
-    (zipmap (keys measure-fns)
-            (for [[k [mes red]] measure-fns]
-              (red (k v1) (k v2)))))
+  (zipmap (keys measure-fns)
+          (for [[k [mes red]] measure-fns]
+            (red (k v1) (k v2)))))
 
 (defdigit a)
 (defdigit a b)
@@ -121,26 +121,26 @@
 (defdigit a b c d)
 
 (defn digit
-    ([measure-fns a]       (make-digit measure-fns a))
-    ([measure-fns a b]     (make-digit measure-fns a b))
-    ([measure-fns a b c]   (make-digit measure-fns a b c))
-    ([measure-fns a b c d] (make-digit measure-fns a b c d)))
+  ([measure-fns a]       (make-digit measure-fns a))
+  ([measure-fns a b]     (make-digit measure-fns a b))
+  ([measure-fns a b c]   (make-digit measure-fns a b c))
+  ([measure-fns a b c d] (make-digit measure-fns a b c d)))
 
 (defn nodes [mfns xs]
-    (let [v (vec xs), c (count v)]
-      (seq
-        (loop [i (int 0), nds []]
-          (condp == (- c i)
-            (int 2) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i)))))
-            (int 3) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i))
-                                         (v (+ (int 2) i)))))
-            (int 4) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i))))
-                            (conj (digit mfns (v (+ (int 2) i))
-                                         (v (+ (int 3) i)))))
-            (recur (+ (int 3) i)
-                  (-> nds
-                      (conj (digit mfns (v i) (v (+ (int 1) i))
-                                   (v (+ (int 2) i)))))))))))
+  (let [v (vec xs), c (count v)]
+    (seq
+      (loop [i (int 0), nds []]
+        (condp == (- c i)
+          (int 2) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i)))))
+          (int 3) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i))
+                                       (v (+ (int 2) i)))))
+          (int 4) (-> nds (conj (digit mfns (v i) (v (+ (int 1) i))))
+                    (conj (digit mfns (v (+ (int 2) i))
+                                 (v (+ (int 3) i)))))
+          (recur (+ (int 3) i)
+                 (-> nds
+                   (conj (digit mfns (v i) (v (+ (int 1) i))
+                                (v (+ (int 2) i)))))))))))
 
 (deftype EmptyTree [measure-fns] :as this
   Seqable
@@ -245,23 +245,23 @@
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
 
 (defn to-tree [measure-fns coll]
-    (reduce conjr (EmptyTree measure-fns) coll))
+  (reduce conjr (EmptyTree measure-fns) coll))
 
 (defn deep-left [pre m suf]
-    (cond
-      (seq pre) (deep pre m suf)
-      (empty? (first m)) (to-tree (measureFns suf) suf)
-      :else (deep (first m)
-                  (delay-ft (rest m) (measureMore m))
-                  suf)))
+  (cond
+    (seq pre) (deep pre m suf)
+    (empty? (first m)) (to-tree (measureFns suf) suf)
+    :else (deep (first m)
+                (delay-ft (rest m) (measureMore m))
+                suf)))
 
 (defn deep-right [pre m suf]
-    (cond
-      (seq suf) (deep pre m suf)
-      (empty? (peek m)) (to-tree (measureFns pre) pre)
-      :else (deep pre
-                  (delay-ft (pop m) (measurePop m))
-                  (peek m))))
+  (cond
+    (seq suf) (deep pre m suf)
+    (empty? (peek m)) (to-tree (measureFns pre) pre)
+    :else (deep pre
+                (delay-ft (pop m) (measurePop m))
+                (peek m))))
 
 (defn deep [pre m suf]
   (let [measure-fns (:measure-fns pre)]
@@ -342,15 +342,15 @@
     (measurePop  [] (mes* (:measure-fns this)
                                 (:pre this) (:mid this) (pop (:suf this)))))
 
- (defn finger-tree [measure-fns & xs]
-   (to-tree measure-fns xs))
+(defn finger-tree [measure-fns & xs]
+  (to-tree measure-fns xs))
 
- (defn split-tree [t p]
-   (split t p (iden* (measureFns t))))
+(defn split-tree [t p]
+  (split t p (iden* (measureFns t))))
 
- (defn ft-concat [t1 t2]
-   (assert (= (measureFns t1) (measureFns t2))) ;measure-fns must be the same
-   (app3 t1 nil t2))
+(defn ft-concat [t1 t2]
+  (assert (= (measureFns t1) (measureFns t2))) ;measure-fns must be the same
+  (app3 t1 nil t2))
 
 ;;=== tests ===
 
