@@ -13,6 +13,8 @@
 - confirm recursion is bounded, though perhaps O(log n) growth is slow enough
 )
 
+;(set! *warn-on-reflection* true)
+
 (defprotocol DoubleSeq
   (consl [s a] "Append a to the left-hand side of s")
   (conjr [s b] "Append b to the right-hand side of s"))
@@ -36,7 +38,7 @@
                        Reversible Indexed))
 (declare newEmptyTree newSingleTree newDeepTree digit deep)
 
-(defmacro #^{:private true} defdigit [& items]
+(defmacro ^:private defdigit [& items]
   (let [i (gensym "i_")
         p (gensym "p_")
         o (gensym "o_")
@@ -92,7 +94,7 @@
                              ~(step (concat ips [ix]) ixs)))))]
              (step nil items))))))
 
-(defmacro #^{:private true} make-digit [measure-fns & items]
+(defmacro ^:private make-digit [measure-fns & items]
   (let [typename (symbol (str "Digit" (count items)))]
     `(let [mfns# ~measure-fns]
        (new ~typename ~@items mfns# (delay (~'mes* mfns# ~@items))))))
@@ -247,7 +249,7 @@
     (measureMore [_] (measureMore @tree-ref))
     (measurePop [_] (measurePop @tree-ref)))
 
-(defmacro #^{:private true} delay-ft [tree-expr mval]
+(defmacro ^:private delay-ft [tree-expr mval]
   `(DelayedTree. (delay ~tree-expr) ~mval))
   ;`(let [v# ~mval] (assert v#) ~tree-expr))
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
@@ -272,7 +274,7 @@
                 (peek m))))
 
 (defn deep [pre m suf]
-  (let [measure-fns (.measure-fns pre)]
+  (let [measure-fns (measureFns pre)]
     (newDeepTree measure-fns pre m suf
                  (delay (if (seq m)
                           (mes* measure-fns pre m suf)
@@ -308,7 +310,7 @@
                      (deep pre (conjr mid n) (digit measure-fns b a)))))
   Measured
     (measure [_] @mval)
-    (measureFns [_] (.measure-fns pre)) ; not needed?
+    (measureFns [_] (measureFns pre)) ; not needed?
   Splittable
     (split [_ pred iden]
       (let [measure-fns measure-fns
@@ -332,9 +334,9 @@
   Tree
     (app3 [this ts t2] (app3deep t2 ts this))
     (app3deep [_ ts t1]
-      (deep (.pre t1)
-            (app3 (.mid t1)
-                  (nodes measure-fns (concat (.suf t1) ts pre))
+      (deep (.pre ^DeepTree t1)
+            (app3 (.mid ^DeepTree t1)
+                  (nodes measure-fns (concat (.suf ^DeepTree t1) ts pre))
                   mid)
             suf))
     (measureMore [this] (mes* measure-fns (next pre) mid suf))
