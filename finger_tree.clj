@@ -46,7 +46,7 @@
   ObjMeter
   (measure [_ _] nil)
   (idElem [_] nil)
-  (opfn [_] (constantly nil))
+  (opfn [_] nil)
   Measured
   (measured [_] nil)
   (getMeter [_] nil))
@@ -61,7 +61,7 @@
         this-items (map #(list (keyword %) o) items)]
    `(deftype ~typename [~@items ~'meter-obj ~'measure-ref]
       Seqable
-        (seq [_] (list ~@items))
+        (seq [_] ~(reduce #(list `cons %2 %1) nil (reverse items)))
       Indexed
         (count [_] ~(count items)) ; not needed?
         (nth [_ ~i notfound#]
@@ -91,7 +91,7 @@
       Measured
         (measured [_] @~'measure-ref)
         (getMeter [_] ~'meter-obj) ; not needed?
-      Splittable
+      Splittable ; allow to fail if op is nil:
         (split [_ ~p ~i]
           ~(letfn [(step [ips [ix & ixs]]
                       (if (empty? ixs)
@@ -114,8 +114,9 @@
     `(let [~'mobj ~meter-obj
            ~'op (opfn ~'mobj)]
        (new ~typename ~@items ~'mobj
-            (delay ~(reduce #(list 'op %1 %2)
-                            (map #(list `measure 'mobj %) items)))))))
+            (when ~'op
+              (delay ~(reduce #(list 'op %1 %2)
+                              (map #(list `measure 'mobj %) items))))))))
 
 (defmacro meter [measure idElem op]
   `(reify ObjMeter
@@ -128,13 +129,14 @@
 (defdigit a b c)
 (defdigit a b c d)
 
+;; cannot be static because it calls protocol methods
 (defn digit
   ([meter-obj a]       (make-digit meter-obj a))
   ([meter-obj a b]     (make-digit meter-obj a b))
   ([meter-obj a b c]   (make-digit meter-obj a b c))
   ([meter-obj a b c d] (make-digit meter-obj a b c d)))
 
-(defn nodes [mfns xs]
+(defn ^:static nodes [mfns xs]
   (let [v (vec xs), c (count v)]
     (seq
       (loop [i (int 0), nds []]
@@ -181,10 +183,10 @@
     (measureMore [_] (idElem meter-obj))
     (measurePop [_] (idElem meter-obj)))
 
-(defn newEmptyTree [meter-obj]
+(defn ^:static newEmptyTree [meter-obj]
   (EmptyTree. meter-obj))
 
-(defn finger-meter [meter-obj]
+(defn ^:static finger-meter [meter-obj]
   (when meter-obj
     (meter
       #(measured %)
@@ -226,7 +228,7 @@
     (measureMore [_] (idElem meter-obj))
     (measurePop [_] (idElem meter-obj)))
 
-(defn newSingleTree [meter-obj x]
+(defn ^:static newSingleTree [meter-obj x]
   (SingleTree. meter-obj x))
 
 (deftype DelayedTree [tree-ref mval]
@@ -265,7 +267,7 @@
   ;`(let [v# ~mval] (assert v#) ~tree-expr))
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
 
-(defn to-tree [meter-obj coll]
+(defn ^:static to-tree [meter-obj coll]
   (reduce conjr (EmptyTree. meter-obj) coll))
 
 (defn deep-left [pre m suf]
@@ -284,19 +286,21 @@
                 (delay-ft (pop m) (measurePop m))
                 (peek m))))
 
-(defn- measured3 [meter-obj pre m suf]
-  (let [op (opfn meter-obj)]
+(defn ^:private measured3 [meter-obj pre m suf]
+  (when-let [op (opfn meter-obj)]
     (op
       (op (measured pre)
           (measured m))
         (measured suf))))
 
 (defn deep [pre m suf]
-  (let [meter-obj (getMeter pre)]
+  (let [meter-obj (getMeter pre)
+        op (opfn meter-obj)]
     (newDeepTree meter-obj pre m suf
-                 (delay (if (seq m)
-                          (measured3 meter-obj pre m suf)
-                          ((opfn meter-obj) (measured pre) (measured suf)))))))
+                 (when op
+                   (delay (if (seq m)
+                            (measured3 meter-obj pre m suf)
+                            (op (measured pre) (measured suf))))))))
 
 (deftype DeepTree [meter-obj pre mid suf mval]
   Seqable
@@ -329,7 +333,7 @@
   Measured
     (measured [_] @mval)
     (getMeter [_] (getMeter pre)) ; not needed?
-  Splittable
+  Splittable ; allow to fail if op is nil:
     (split [_ pred acc]
       (let [op (opfn meter-obj)
             vpr (op acc (measured pre))]
@@ -358,10 +362,10 @@
     (measureMore [this] (measured3 meter-obj (rest pre) mid suf))
     (measurePop  [this] (measured3 meter-obj pre mid (pop suf))))
 
-(defn newDeepTree [meter-obj pre mid suf mval]
+(defn ^:static newDeepTree [meter-obj pre mid suf mval]
   (DeepTree. meter-obj pre mid suf mval))
 
-(defn finger-tree [meter-obj & xs]
+(defn ^:static finger-tree [meter-obj & xs]
   (to-tree meter-obj xs))
 
 (defn split-tree [t p]
@@ -403,19 +407,32 @@
       (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
 
 
-(def len-meter (meter (constantly 1) 0 +))
-(def string-meter (meter str "" str))
+(defrecord Len-Meter [^int len])
+(def measure-len (constantly (Len-Meter. 1)))
+(def len-meter (meter measure-len
+                      (Len-Meter. 0)
+                      #(Len-Meter. (+ (:len %1) (:len %2)))))
+
+(defrecord String-Meter [string])
+(defn ^:static measure-str [node] (String-Meter. (str node)))
+(def string-meter (meter measure-str
+                         (String-Meter. "")
+                         #(String-Meter. (str (:string %1) (:string %2)))))
 
 (defrecord Len-String-Meter [len string])
 
 (def len-string-meter
-  (meter
-    (fn [o]
-      (Len-String-Meter. (measure len-meter o) (measure string-meter o)))
-    (Len-String-Meter. (idElem len-meter) (idElem string-meter))
-    (fn [a b] (Len-String-Meter.
-                ((opfn len-meter) (:len a) (:len b))
-                ((opfn string-meter) (:string a) (:string b))))))
+  (let [len-op (opfn len-meter)
+        string-op (opfn string-meter)]
+    (meter
+      (fn [o]
+        (Len-String-Meter. (:len (measure len-meter o))
+                           (:string (measure string-meter o))))
+      (Len-String-Meter. (:len (idElem len-meter))
+                         (:string (idElem string-meter)))
+      (fn [a b] (Len-String-Meter.
+                  (:len (len-op a b))
+                  (:string (string-op a b)))))))
 
 
 (deftest Annotate-One-Direction

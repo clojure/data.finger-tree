@@ -66,3 +66,25 @@ with Clojure 1.2.0:
 queue:  2645.928817
 split:  2374.810216
 concat: 1530.395627
+
+with record-based meters (+ some performance tweaks):
+queue: (time (count (reduce #(-> % (conjr %2) rest) (reduce consl (EmptyTree. nil) (range 1e4)) (range 1e6))))
+split: (time (let [n 1e4, t (to-tree len-meter (range n))] (dotimes [i n] (split-tree t #(< i %)))))
+concat: (time (let [t (to-tree nil (range 1e5))] (dotimes [_ 3e4] (ft-concat t t))))
+
+queue:  3334.090979
+split:   313.484652
+concat: 1763.906721
+
+Len-Meter instead of Integer:
+queue: (time (count (reduce #(-> % (conjr %2) rest) (reduce consl (EmptyTree. nil) (range 1e4)) (range 1e6))))
+split: (time (let [n 1e4, t (to-tree len-meter (range n))] (dotimes [i n] (split-tree t #(< i (:len %))))))
+concat: (time (let [t (to-tree nil (range 1e5))] (dotimes [_ 3e4] (ft-concat t t))))
+split:   331.637379
+
+Test for nil op:
+queue:  2346.357413
+split:   352.238152
+concat  1518.418893
+
+split with len-string-meter: 40264.907112
