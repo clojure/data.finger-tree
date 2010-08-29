@@ -1,7 +1,6 @@
 (ns clojure.lang.fingertree)
 (comment ; TODO:
 
-- test performance
 - add pre-packaged ctor for vector-like obj, perhaps also priority queue
 - implement java.util.Collection
 - implement equals
@@ -11,6 +10,14 @@
 - replace copy/pasted code with macros
 - test deque complexity
 - confirm recursion is bounded, though perhaps O(log n) growth is slow enough
+- add simple lookup to Splittable?
+
+- uses:
+ - vector with insertion
+ - sorted set with index
+ - sorted map with index
+ - priority queue (compare with sorted set)
+
 )
 
 ;(set! *warn-on-reflection* true)
@@ -343,9 +350,7 @@
           (let [vm (op vpr (measured mid))]
             (if (pred vm)
               (let [[ml xs mr] (split mid pred vpr)
-                    [sl sx sr] (split (apply digit meter-obj xs)
-                                      pred
-                                      (op vpr (measured ml)))]
+                    [sl sx sr] (split xs pred (op vpr (measured ml)))]
                 [(deep-right pre ml sl) sx (deep-left sr mr suf)])
               (let [[sl sx sr] (split suf pred vm)]
                 [(deep-right pre mid sl)
