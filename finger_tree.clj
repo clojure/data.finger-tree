@@ -12,8 +12,8 @@
 - confirm recursion is bounded, though perhaps O(log n) growth is slow enough
 - add simple lookup to Splittable?
 
-- uses:
- - vector with insertion
+- uses...
+ - vector with insertion (random access sequence)
  - sorted set with index
  - sorted map with index
  - priority queue (compare with sorted set)
@@ -424,6 +424,7 @@
                          (String-Meter. "")
                          #(String-Meter. (str (:string %1) (:string %2)))))
 
+
 (defrecord Len-String-Meter [len string])
 
 (def len-string-meter
@@ -438,7 +439,6 @@
       (fn [a b] (Len-String-Meter.
                   (:len (len-op a b))
                   (:string (string-op a b)))))))
-
 
 (deftest Annotate-One-Direction
   (let [measure-fns len-string-meter]
@@ -477,10 +477,37 @@
                (measured (ft-concat a b))))))))
 
 (deftest Split
-  (let [mfns len-string-meter
-        make-item (fn [i] (symbol (str i 'a)))]
+  (let [make-item (fn [i] (symbol (str i 'a)))]
     (doseq [len (range 10)
-            :let [tree (to-tree mfns (map make-item (range len)))]
+            :let [tree (to-tree len-string-meter (map make-item (range len)))]
             split-i (range len)]
       (is (= [len split-i (make-item split-i)]
              [len split-i (second (split-tree tree #(< split-i (:len %))))])))))
+
+(defrecord Right-Meter [right])
+(defn measure-right [x] (Right-Meter. x))
+(def zero-right (Right-Meter. nil))
+(def right-meter
+  (meter measure-right
+         zero-right
+         #(if (:right %2) %2 %1)))
+
+(defn insert-where [tree pred value]
+  (if (empty? tree)
+    (conjr tree value)
+    (let [[l x r] (split-tree tree pred)
+          [a b] (if (pred (measure (getMeter tree) x)) [value x] [x value])]
+      (ft-concat (conjr l a) (consl r b)))))
+  
+
+(deftest Sorted-Set
+  (let [r (java.util.Random. 42)]
+    (reduce (fn [[t s] i]
+              (let [t2 (insert-where t
+                                     #(when-let [r (:right %)] (< i r))
+                                     i)
+                    s (conj s i)]
+                (is (= (seq s) t2))
+                [t2 s]))
+            [(finger-tree right-meter) (sorted-set)]
+            (take 1000 (repeatedly #(.nextInt r))))))

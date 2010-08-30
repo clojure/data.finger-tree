@@ -88,3 +88,13 @@ split:   352.238152
 concat  1518.418893
 
 split with len-string-meter: 40264.907112
+
+--- sorted set slowness:
+(do (def rands (let [r (java.util.Random. 42)] (take 10000 (repeatedly #(.nextInt r))))) nil)
+
+(defn s1 [] (first (reduce (fn [t i] (insert-where t #(when-let [r (:right %)] (< i r)) i)) (finger-tree right-meter) rands)))
+; 914.896926
+
+(defn s2 [] (first (reduce conj (sorted-set) rands)))
+; 55.687814
+
