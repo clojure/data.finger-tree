@@ -1,4 +1,4 @@
-(ns clojure.lang.fingertree)
+;(ns clojure.lang.fingertree)
 (comment ; TODO:
 
 - add pre-packaged ctor for vector-like obj, perhaps also priority queue
@@ -39,6 +39,10 @@
 (defprotocol Splittable
   (split [o pred acc] "Return [pre m post] where pre and post are trees"))
 
+(defprotocol SplitAt
+  (ft-split-at [o k notfound] [o k]
+               "Return [pre m post] where pre and post are trees"))
+
 (defprotocol Tree
   (app3 [t1 ts t2] "Append ts and (possibly deep) t2 to tree t1")
   (app3deep [t2 ts t1] "Append ts and t2 to deep tree t1")
@@ -46,8 +50,8 @@
   (measurePop [o] "Return the measure of o not including the rightmost item"))
 
 (use 'clojure.test)
-(import '(clojure.lang Seqable ISeq IPersistentStack IPersistentCollection
-                       Reversible Indexed))
+(import '(clojure.lang Seqable Sequential ISeq IPersistentStack IPersistentCollection Associative
+                       Reversible Indexed Counted ))
 
 (extend-type nil
   ObjMeter
@@ -216,7 +220,7 @@
     (peek [_] x)
     (pop [_] (EmptyTree. meter-obj))
   Reversible
-    (rseq [_] (list x)) ; not this because tree ops can't be reversed
+    (rseq [_] (list x)) ; not 'this' because tree ops can't be reversed
   DoubleSeq
     (consl [_ a] (deep (digit meter-obj a)
                        (EmptyTree. (finger-meter meter-obj))
@@ -380,23 +384,128 @@
   (assert (= (getMeter t1) (getMeter t2))) ;meters must be the same
   (app3 t1 nil t2))
 
+;;=== applications ===
+
+(deftype DoubleList [tree]
+  Sequential
+  Seqable
+    (seq [this] (seq tree))
+  IPersistentCollection
+    (cons [_ x] (DoubleList. (conjr tree x)))
+    (count [_] (count (seq tree))) ; Slow!
+    (empty [_] (DoubleList. (empty tree)))
+    (equiv [_ x] false) ; TBD
+  ISeq
+    (first [_] (first tree))
+    (more [_] (DoubleList. (rest tree)))
+    (next [_] (if-let [t (next tree)] (DoubleList. t)))
+  IPersistentStack ; actually, queue
+    (peek [_] (peek tree))
+    (pop [_] (DoubleList. (pop tree)))
+  Reversible
+    (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
+  DoubleSeq
+    (consl [_ a] (DoubleList. (consl tree a)))
+    (conjr [_ b] (DoubleList. (conjr tree b)))
+  Measured
+    (measured [_] (measured tree))
+    (getMeter [_] (getMeter tree)) ; not needed?
+  Splittable
+    (split [_ pred acc] (let [[pre m post] (split tree pred acc)]
+                          [(DoubleList. pre) m (DoubleList. post)]))
+  Tree
+    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
+    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1)))
+    (measureMore [_] (measureMore tree))
+    (measurePop [_] (measurePop tree)))
+
+(defn double-list [& args]
+  (into (DoubleList. (EmptyTree. nil)) args))
+
+(deftype CountedDoubleList [tree]
+  Sequential
+  Seqable
+    (seq [this] (seq tree))
+  IPersistentCollection
+    (cons [_ x] (CountedDoubleList. (conjr tree x)))
+    (empty [_] (CountedDoubleList. (empty tree)))
+    (equiv [_ x] false) ; TBD
+  ISeq
+    (first [_] (first tree))
+    (more [_] (CountedDoubleList. (rest tree)))
+    (next [_] (if-let [t (next tree)] (CountedDoubleList. t)))
+  IPersistentStack
+    (peek [_] (peek tree))
+    (pop [_] (CountedDoubleList. (pop tree)))
+  Reversible
+    (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
+  DoubleSeq
+    (consl [_ a] (CountedDoubleList. (consl tree a)))
+    (conjr [_ b] (CountedDoubleList. (conjr tree b)))
+  Measured
+    (measured [_] (measured tree))
+    (getMeter [_] (getMeter tree)) ; not needed?
+  Splittable
+    (split [_ pred acc]
+      (let [[pre m post] (split tree pred acc)]
+        [(CountedDoubleList. pre) m (CountedDoubleList. post)]))
+  SplitAt
+    (ft-split-at [this n notfound]
+      (cond
+        (< n 0) [(empty this) notfound this]
+        (< n (count this)) (split-tree this #(< n %))
+        :else [this notfound (empty this)]))
+    (ft-split-at [this n]
+      (ft-split-at this n nil))
+  Tree
+    (app3 [_ ts t2] (CountedDoubleList. (app3 tree ts t2)))
+    (app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1)))
+    (measureMore [_] (measureMore tree))
+    (measurePop [_] (measurePop tree))
+  Counted
+    (count [_] (measured tree))
+  Associative
+    (assoc [this k v]
+      (cond
+        (or (< k -1) (>= k (count this))) (throw (IndexOutOfBoundsException.))
+        (== k -1) (consl this v)
+        (== k (measured tree)) (conjr this v)
+        :else (let [[pre mid post] (split-tree tree #(< k %))]
+                (CountedDoubleList. (ft-concat (conjr pre v) post)))))
+    (containsKey [_ k] (< -1 k (measured tree)))
+    (entryAt [_ n] (clojure.lang.MapEntry.
+                     n (second (split-tree tree #(< n %)))))
+    (valAt [this n notfound] (if (.containsKey this n)
+                               (second (split-tree tree #(< n %)))
+                               notfound))
+    (valAt [this n] (.valAt this n nil))
+  Indexed
+    (nth [this n] (if (.containsKey this n)
+                    (second (split-tree tree #(< n %)))
+                    (throw (IndexOutOfBoundsException.)))))
+
+(defn counted-double-list [& args]
+  (let [measure-len (constantly 1)
+        len-meter (meter measure-len 0 +)]
+    (into (CountedDoubleList. (EmptyTree. len-meter)) args)))
+
 ;;=== tests ===
 
 (deftest Conj-Seq-Queue
   (let [len 100]
     (are [x] (= (map identity x) (range len))
-      (rseq (reduce consl (finger-tree nil) (range len)))
-      (seq  (reduce conjr (finger-tree nil) (range len))))))
+      (rseq (reduce consl (double-list) (range len)))
+      (seq  (reduce conjr (double-list) (range len))))))
 
 (deftest Conj-Seq-Stack
   (let [len 100]
     (are [x] (= (map identity x) (range (dec len) -1 -1))
-      (rseq (reduce conjr (finger-tree nil) (range len)))
-      (seq  (reduce consl (finger-tree nil) (range len))))))
+      (rseq (reduce conjr (double-list) (range len)))
+      (seq  (reduce consl (double-list) (range len))))))
     
 (deftest Conj-Seq-Mixed
   (doseq [m (range 2 7)]
-    (loop [ft (finger-tree nil), vc [], i (int 0)]
+    (loop [ft (double-list), vc [], i (int 0)]
       (when (< i 40)
         (is (= (seq (map identity ft)) (seq vc)))
         (if (zero? (rem i m))
@@ -407,8 +516,8 @@
   (doseq [a-len (range 25), b-len (range 25)]
     (let [a-s (map #(symbol (str % 'a)) (range a-len))
           b-s (map #(symbol (str % 'b)) (range b-len))
-          a (apply finger-tree nil a-s)
-          b (apply finger-tree nil b-s)]
+          a (apply double-list a-s)
+          b (apply double-list b-s)]
       (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
 
 
@@ -461,8 +570,13 @@
 (deftest Ann-Conj-Seq-Queue
   (let [len 100]
     (are [x] (= (map identity x) (range len))
-      (rseq (reduce consl (finger-tree len-meter) (range len)))
-      (seq  (reduce conjr (finger-tree len-meter) (range len))))))
+      (rseq (reduce consl (counted-double-list) (range len)))
+      (seq  (reduce conjr (counted-double-list) (range len))))))
+
+(deftest Counted-Test
+  (let [xs (map #(str "x" %) (range 1000))
+        cdl (apply counted-double-list xs)]
+    (is (= (concat [nil] xs [nil]) (map #(get cdl %) (range -1 1001))))))
 
 (deftest Annotate-Concat
   (let [measure-fns len-string-meter]
