@@ -50,8 +50,9 @@
   (measurePop [o] "Return the measure of o not including the rightmost item"))
 
 (use 'clojure.test)
-(import '(clojure.lang Seqable Sequential ISeq IPersistentStack IPersistentCollection Associative
-                       Reversible Indexed Counted ))
+(import '(clojure.lang Seqable Sequential ISeq IPersistentSet
+                       IPersistentStack IPersistentCollection Associative
+                       Sorted Reversible Indexed Counted))
 
 (extend-type nil
   ObjMeter
@@ -389,7 +390,7 @@
 (deftype DoubleList [tree]
   Sequential
   Seqable
-    (seq [this] (seq tree))
+    (seq [this] (when (seq tree) this))
   IPersistentCollection
     (cons [_ x] (DoubleList. (conjr tree x)))
     (count [_] (count (seq tree))) ; Slow!
@@ -407,17 +408,18 @@
   DoubleSeq
     (consl [_ a] (DoubleList. (consl tree a)))
     (conjr [_ b] (DoubleList. (conjr tree b)))
-  Measured
-    (measured [_] (measured tree))
-    (getMeter [_] (getMeter tree)) ; not needed?
-  Splittable
-    (split [_ pred acc] (let [[pre m post] (split tree pred acc)]
-                          [(DoubleList. pre) m (DoubleList. post)]))
-  Tree
-    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
-    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1)))
-    (measureMore [_] (measureMore tree))
-    (measurePop [_] (measurePop tree)))
+;  Measured
+;    (measured [_] (measured tree))
+;    (getMeter [_] (getMeter tree)) ; not needed?
+;  Splittable
+;    (split [_ pred acc] (let [[pre m post] (split tree pred acc)]
+;                          [(DoubleList. pre) m (DoubleList. post)]))
+;  Tree
+;    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
+;    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1)))
+;    (measureMore [_] (measureMore tree))
+;    (measurePop [_] (measurePop tree))
+ )
 
 (defn double-list [& args]
   (into (DoubleList. (EmptyTree. nil)) args))
@@ -425,7 +427,7 @@
 (deftype CountedDoubleList [tree]
   Sequential
   Seqable
-    (seq [this] (seq tree))
+    (seq [this] (when (seq tree) this))
   IPersistentCollection
     (cons [_ x] (CountedDoubleList. (conjr tree x)))
     (empty [_] (CountedDoubleList. (empty tree)))
@@ -442,13 +444,13 @@
   DoubleSeq
     (consl [_ a] (CountedDoubleList. (consl tree a)))
     (conjr [_ b] (CountedDoubleList. (conjr tree b)))
-  Measured
-    (measured [_] (measured tree))
-    (getMeter [_] (getMeter tree)) ; not needed?
-  Splittable
-    (split [_ pred acc]
-      (let [[pre m post] (split tree pred acc)]
-        [(CountedDoubleList. pre) m (CountedDoubleList. post)]))
+;  Measured
+;    (measured [_] (measured tree))
+;    (getMeter [_] (getMeter tree)) ; not needed?
+;  Splittable
+;    (split [_ pred acc]
+;      (let [[pre m post] (split tree pred acc)]
+;        [(CountedDoubleList. pre) m (CountedDoubleList. post)]))
   SplitAt
     (ft-split-at [this n notfound]
       (cond
@@ -480,6 +482,9 @@
                                notfound))
     (valAt [this n] (.valAt this n nil))
   Indexed
+    (nth [this n notfound] (if (.containsKey this n)
+                             (second (split-tree tree #(< n (:len %))))
+                             notfound))
     (nth [this n] (if (.containsKey this n)
                     (second (split-tree tree #(< n %)))
                     (throw (IndexOutOfBoundsException.)))))
@@ -488,6 +493,87 @@
   (let [measure-len (constantly 1)
         len-meter (meter measure-len 0 +)]
     (into (CountedDoubleList. (EmptyTree. len-meter)) args)))
+
+
+(defrecord Len-Right-Meter [len right])
+(defn measure-len-right [x] (Len-Right-Meter. 1 x))
+(def zero-len-right (Len-Right-Meter. 0 nil))
+(def len-right-meter
+  (meter measure-len-right
+         zero-len-right
+         #(Len-Right-Meter. (+ (:len %1) (:len %2))
+                            (or (:right %2) (:right %1)))))
+
+(deftype CountedSortedSet [cmpr tree]
+  Sequential
+  Seqable
+    (seq [this] (when (seq tree) this))
+  IPersistentCollection
+    (cons [this value]
+      (if (empty? tree)
+        (CountedSortedSet. cmpr (conjr tree value))
+        (let [[l x r] (split-tree tree #(>= 0 (cmpr value (:right %))))
+              compared (cmpr value x)]
+          (if (zero? compared)
+            this ; already in set
+            (let [[a b] (if (>= 0 compared) [value x] [x value])]
+              (CountedSortedSet. cmpr (ft-concat (conjr l a) (consl r b))))))))
+    (empty [_] (CountedSortedSet. cmpr (empty tree)))
+    (equiv [_ x] false) ; TBD
+  ISeq
+    (first [_] (first tree))
+    (more [_] (CountedSortedSet. cmpr (rest tree)))
+    (next [_] (if-let [t (next tree)] (CountedSortedSet. cmpr t)))
+  IPersistentStack
+    (peek [_] (peek tree))
+    (pop [_] (CountedSortedSet. cmpr (pop tree)))
+  Reversible
+    (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
+  SplitAt
+    (ft-split-at [this n notfound]
+      (cond
+        (< n 0) [(empty this) notfound this]
+        (< n (count this)) (let [[l x r] (split-tree tree #(< n (:len %)))]
+                             [(CountedSortedSet. cmpr l) x
+                              (CountedSortedSet. cmpr r)])
+        :else [this notfound (empty this)]))
+    (ft-split-at [this n]
+      (ft-split-at this n nil))
+  Counted
+    (count [_] (:len (measured tree)))
+  IPersistentSet
+    (disjoin [this k]
+      (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
+        (if (= x k)
+          (CountedSortedSet. cmpr (ft-concat l r))
+          this)))
+    (get [_ k]
+      (let [x (second (split-tree tree #(>= 0 (cmpr k (:right %)))))]
+        (when (= x k) k)))
+  Indexed
+    (nth [this n notfound] (if (< -1 n (:len (measured tree)))
+                             (second (split-tree tree #(< n (:len %))))
+                             notfound))
+    (nth [this n] (if (< -1 n (:len (measured tree)))
+                    (second (split-tree tree #(< n (:len %))))
+                    (throw (IndexOutOfBoundsException.))))
+  Sorted
+    (comparator [_] cmpr)
+    (entryKey [_ x] x)
+    (seq [this ascending?] (if ascending?  (.seq this) (rseq tree)))
+    (seqFrom [_ k ascending?]
+      (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
+        (if ascending?
+          (CountedSortedSet. cmpr (consl r x))
+          (rseq (conjr l x))))))
+
+(prefer-method clojure.pprint/simple-dispatch IPersistentSet ISeq)
+
+(defn counted-sorted-set-by [cmpr & args]
+  (into (CountedSortedSet. cmpr (EmptyTree. len-right-meter)) args))
+
+(defn counted-sorted-set [& args]
+  (into (CountedSortedSet. compare (EmptyTree. len-right-meter)) args))
 
 ;;=== tests ===
 
