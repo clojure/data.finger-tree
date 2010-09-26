@@ -408,18 +408,12 @@
   DoubleSeq
     (consl [_ a] (DoubleList. (consl tree a)))
     (conjr [_ b] (DoubleList. (conjr tree b)))
-;  Measured
-;    (measured [_] (measured tree))
-;    (getMeter [_] (getMeter tree)) ; not needed?
-;  Splittable
-;    (split [_ pred acc] (let [[pre m post] (split tree pred acc)]
-;                          [(DoubleList. pre) m (DoubleList. post)]))
-;  Tree
-;    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
-;    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1)))
-;    (measureMore [_] (measureMore tree))
-;    (measurePop [_] (measurePop tree))
- )
+  Measured
+    (measured [_] (measured tree))
+    (getMeter [_] (getMeter tree))
+  Tree
+    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
+    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1))))
 
 (defn double-list [& args]
   (into (DoubleList. (EmptyTree. nil)) args))
@@ -444,18 +438,18 @@
   DoubleSeq
     (consl [_ a] (CountedDoubleList. (consl tree a)))
     (conjr [_ b] (CountedDoubleList. (conjr tree b)))
-;  Measured
-;    (measured [_] (measured tree))
-;    (getMeter [_] (getMeter tree)) ; not needed?
+  Measured
+    (measured [_] (measured tree))
+    (getMeter [_] (getMeter tree)) ; not needed?
 ;  Splittable
 ;    (split [_ pred acc]
-;      (let [[pre m post] (split tree pred acc)]
-;        [(CountedDoubleList. pre) m (CountedDoubleList. post)]))
   SplitAt
     (ft-split-at [this n notfound]
       (cond
         (< n 0) [(empty this) notfound this]
-        (< n (count this)) (split-tree this #(< n %))
+        (< n (count this))
+          (let [[pre m post] (split-tree tree #(< n %))]
+            [(CountedDoubleList. pre) m (CountedDoubleList. post)])
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
       (ft-split-at this n nil))
@@ -529,6 +523,13 @@
     (pop [_] (CountedSortedSet. cmpr (pop tree)))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
+  Measured
+    (measured [_] (measured tree))
+    (getMeter [_] (getMeter tree)) ; not needed?
+;  Splittable
+;    (split [_ pred acc]
+;      (let [[pre m post] (split tree pred acc)]
+;        [(CountedSortedSet. cmpr pre) m (CountedSortedSet. cmpr post)]))
   SplitAt
     (ft-split-at [this n notfound]
       (cond
@@ -539,6 +540,11 @@
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
       (ft-split-at this n nil))
+;  Tree
+;    (app3 [_ ts t2] (CountedSortedSet. cmpr (app3 tree ts t2)))
+;    (app3deep [_ ts t1] (CountedSortedSet. cmpr (app3deep tree ts t1)))
+;    (measureMore [_] (measureMore tree))
+;    (measurePop [_] (measurePop tree))
   Counted
     (count [_] (:len (measured tree)))
   IPersistentSet
@@ -605,6 +611,25 @@
           a (apply double-list a-s)
           b (apply double-list b-s)]
       (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
+
+(deftest CDLSplit
+  (doseq [len (range 50), n (range -1 (inc len))]
+    (let [[l m r] (ft-split-at (apply counted-double-list (range len)) n)]
+      (is (instance? CountedDoubleList l))
+      (is (instance? CountedDoubleList r))
+      (cond
+        (neg? n) (do
+                   (is (nil? m))
+                   (is (empty? l))
+                   (is (= (range len) r)))
+        (>= n len) (do 
+                     (is (nil? m))
+                     (is (= (range len) l))
+                     (is (empty? r)))
+        :else (do 
+                (is (= n m))
+                (is (= (range n) l))
+                (is (= (range (inc n) len) r)))))))
 
 
 (defrecord Len-Meter [^int len])
