@@ -320,7 +320,7 @@
   IPersistentCollection
     (cons [_ x]) ; TBD
     (count [_]) ; not needed?
-    (empty [_] (empty pre))
+    (empty [_] (newEmptyTree meter-obj))
     (equiv [_ x]) ; TBD
   ISeq
     (first [_] (first pre))
@@ -441,8 +441,6 @@
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree)) ; not needed?
-;  Splittable
-;    (split [_ pred acc]
   SplitAt
     (ft-split-at [this n notfound]
       (cond
@@ -620,14 +618,20 @@
       (cond
         (neg? n) (do
                    (is (nil? m))
+                   (is (zero? (count l)))
+                   (is (= len (count r)))
                    (is (empty? l))
                    (is (= (range len) r)))
         (>= n len) (do 
                      (is (nil? m))
+                     (is (= len (count l)))
+                     (is (zero? (count r)))
                      (is (= (range len) l))
                      (is (empty? r)))
         :else (do 
                 (is (= n m))
+                (is (= n (count l)))
+                (is (= (- len n 1) (count r)))
                 (is (= (range n) l))
                 (is (= (range (inc n) len) r)))))))
 
