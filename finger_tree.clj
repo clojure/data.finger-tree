@@ -461,11 +461,12 @@
   Associative
     (assoc [this k v]
       (cond
-        (or (< k -1) (>= k (count this))) (throw (IndexOutOfBoundsException.))
         (== k -1) (consl this v)
         (== k (measured tree)) (conjr this v)
-        :else (let [[pre mid post] (split-tree tree #(< k %))]
-                (CountedDoubleList. (ft-concat (conjr pre v) post)))))
+        (< -1 k (measured tree))
+          (let [[pre mid post] (split-tree tree #(< k %))]
+            (CountedDoubleList. (ft-concat (conjr pre v) post)))
+        :else (throw (IndexOutOfBoundsException.))))
     (containsKey [_ k] (< -1 k (measured tree)))
     (entryAt [_ n] (clojure.lang.MapEntry.
                      n (second (split-tree tree #(< n %)))))
@@ -475,7 +476,7 @@
     (valAt [this n] (.valAt this n nil))
   Indexed
     (nth [this n notfound] (if (.containsKey this n)
-                             (second (split-tree tree #(< n (:len %))))
+                             (second (split-tree tree #(< n %)))
                              notfound))
     (nth [this n] (if (.containsKey this n)
                     (second (split-tree tree #(< n %)))
@@ -635,6 +636,27 @@
                 (is (= (range n) l))
                 (is (= (range (inc n) len) r)))))))
 
+(deftest CDLAssoc
+  (doseq [len (range 50), n (range (inc len))]
+    (let [v (assoc (vec (range len)) n :x)
+          cdl (assoc (apply counted-double-list (range len)) n :x)]
+      (is (= v cdl))
+      (doseq [i (range len)]
+        (is (= (nth v i) (nth cdl i)))
+        (is (= (get v i) (get cdl i))))
+      (doseq [i [-1 len]]
+        (is (= (nth v i :nf) (nth cdl i :nf)))
+        (is (= (get v i :nf) (get cdl i :nf)))))))
+
+(deftest CDLAssocCons
+  (doseq [len (range 50)]
+    (is (= (vec (cons :x (range len)))
+           (assoc (apply counted-double-list (range len)) -1 :x)))))
+
+(deftest CDLAssocFail
+  (doseq [len (range 50), n [-2 (inc len)]]
+    (is (thrown? Exception
+                 (assoc (apply counted-double-list (range len)) n :x)))))
 
 (defrecord Len-Meter [^int len])
 (def measure-len (constantly (Len-Meter. 1)))
