@@ -482,10 +482,13 @@
                     (second (split-tree tree #(< n %)))
                     (throw (IndexOutOfBoundsException.)))))
 
+(let [measure-len (constantly 1)
+      len-meter (meter measure-len 0 +)]
+  (def empty-counted-double-list
+    (CountedDoubleList. (EmptyTree. len-meter))))
+
 (defn counted-double-list [& args]
-  (let [measure-len (constantly 1)
-        len-meter (meter measure-len 0 +)]
-    (into (CountedDoubleList. (EmptyTree. len-meter)) args)))
+  (into empty-counted-double-list args))
 
 
 (defrecord Len-Right-Meter [len right])
