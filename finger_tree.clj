@@ -491,14 +491,7 @@
   (into empty-counted-double-list args))
 
 
-(defrecord Len-Right-Meter [len right])
-(defn measure-len-right [x] (Len-Right-Meter. 1 x))
-(def zero-len-right (Len-Right-Meter. 0 nil))
-(def len-right-meter
-  (meter measure-len-right
-         zero-len-right
-         #(Len-Right-Meter. (+ (:len %1) (:len %2))
-                            (or (:right %2) (:right %1)))))
+(defrecord Len-Right-Meter [^int len right])
 
 (deftype CountedSortedSet [cmpr tree]
   Sequential
@@ -575,13 +568,21 @@
           (CountedSortedSet. cmpr (consl r x))
           (rseq (conjr l x))))))
 
+(let [measure-lr (fn [x] (Len-Right-Meter. 1 x))
+      zero-lr (Len-Right-Meter. 0 nil)
+      len-lr (meter measure-lr
+                    zero-lr
+                    #(Len-Right-Meter. (+ (.len ^Len-Right-Meter %1)
+                                          (.len ^Len-Right-Meter %2))
+                                       (or (:right %2) (:right %1))))
+      empty-tree (EmptyTree. len-lr)
+      default-empty-set (CountedSortedSet. compare empty-tree)]
+  (defn counted-sorted-set-by [cmpr & args]
+    (into (CountedSortedSet. cmpr empty-tree) args))
+  (defn counted-sorted-set [& args]
+    (into default-empty-set args)))
+
 (prefer-method clojure.pprint/simple-dispatch IPersistentSet ISeq)
-
-(defn counted-sorted-set-by [cmpr & args]
-  (into (CountedSortedSet. cmpr (EmptyTree. len-right-meter)) args))
-
-(defn counted-sorted-set [& args]
-  (into (CountedSortedSet. compare (EmptyTree. len-right-meter)) args))
 
 ;;=== tests ===
 
@@ -660,6 +661,24 @@
   (doseq [len (range 50), n [-2 (inc len)]]
     (is (thrown? Exception
                  (assoc (apply counted-double-list (range len)) n :x)))))
+
+(deftest CSSConjDisj
+  (let [values (vec (concat (range 50) [4.5 10.5 45.5 30.5]))]
+    (dotimes [len (count values)]
+      (let [pset (apply sorted-set (take len values))
+            base (apply counted-sorted-set (take len values))] ; cons
+        (is (= len (count base)))                    ; counted
+        (dotimes [n len]
+          (is (= (seq pset) (conj base (values n)))) ; exclusive set, next
+          (is (= (nth (seq pset) n) (nth base n)))   ; indexed lookup
+          (is (= (values n) (get base (values n))))) ; set lookup
+        (reduce (fn [[pset base] value]              ; disj
+                  (is (= (seq pset) base))
+                  (is (= (count pset) (count base)))
+                  [(disj pset value) (disj base value)])
+                [pset base] (take len values))))))
+
+; for CSS: ft-split-at, peek/pop, subseq, rsubseq
 
 (defrecord Len-Meter [^int len])
 (def measure-len (constantly (Len-Meter. 1)))
