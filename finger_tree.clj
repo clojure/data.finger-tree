@@ -615,30 +615,42 @@
           b (apply double-list b-s)]
       (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
 
+(defn test-split-at [expected-vec counted-tree tree-type]
+  (dotimes [n (count expected-vec)]
+    (let [[l m r] (ft-split-at counted-tree n)]
+      (is (instance? tree-type l))
+      (is (instance? tree-type r))
+      (is (= (nth expected-vec n) m))
+      (is (= n (count l)))
+      (is (= (- (count expected-vec) n 1) (count r)))
+      (is (= (subvec expected-vec 0 n) l))
+      (is (= (subvec expected-vec (inc n)) r))))
+  
+  (let [[l m r] (ft-split-at counted-tree -1)]
+    (is (instance? tree-type l))
+    (is (instance? tree-type r))
+    (is (nil? m))
+    (is (zero? (count l)))
+    (is (= (count expected-vec) (count r)))
+    (is (empty? l))
+    (is (= expected-vec r)))
+
+  (let [len (count expected-vec)
+        [l m r] (ft-split-at counted-tree len)]
+    (is (instance? tree-type l))
+    (is (instance? tree-type r))
+    (is (nil? m))
+    (is (= len (count l)))
+    (is (zero? (count r)))
+    (is (= expected-vec l))
+    (is (empty? r))))
+
 (deftest CDLSplit
-  (doseq [len (range 50), n (range -1 (inc len))]
-    (let [[l m r] (ft-split-at (apply counted-double-list (range len)) n)]
-      (is (instance? CountedDoubleList l))
-      (is (instance? CountedDoubleList r))
-      (cond
-        (neg? n) (do
-                   (is (nil? m))
-                   (is (zero? (count l)))
-                   (is (= len (count r)))
-                   (is (empty? l))
-                   (is (= (range len) r)))
-        (>= n len) (do 
-                     (is (nil? m))
-                     (is (= len (count l)))
-                     (is (zero? (count r)))
-                     (is (= (range len) l))
-                     (is (empty? r)))
-        :else (do 
-                (is (= n m))
-                (is (= n (count l)))
-                (is (= (- len n 1) (count r)))
-                (is (= (range n) l))
-                (is (= (range (inc n) len) r)))))))
+  (let [basevec (vec (map #(format "x%02d" %) (range 50)))]
+    (dotimes [len (count basevec)]
+      (let [lenvec (subvec basevec 0 len)]
+        (test-split-at lenvec (apply counted-double-list lenvec)
+                       CountedDoubleList)))))
 
 (deftest CDLAssoc
   (doseq [len (range 50), n (range (inc len))]
@@ -678,7 +690,14 @@
                   [(disj pset value) (disj base value)])
                 [pset base] (take len values))))))
 
-; for CSS: ft-split-at, peek/pop, subseq, rsubseq
+(deftest CSSSplitAt
+  (let [basevec (vec (map #(format "x%02d" %) (range 50)))]
+    (dotimes [len (count basevec)]
+      (let [lenvec (subvec basevec 0 len)]
+        (test-split-at lenvec (apply counted-sorted-set lenvec)
+                       CountedSortedSet)))))
+
+; for CSS: peek/pop, subseq, rsubseq
 
 (defrecord Len-Meter [^int len])
 (def measure-len (constantly (Len-Meter. 1)))
