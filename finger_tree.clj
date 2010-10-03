@@ -521,10 +521,6 @@
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree)) ; not needed?
-;  Splittable
-;    (split [_ pred acc]
-;      (let [[pre m post] (split tree pred acc)]
-;        [(CountedSortedSet. cmpr pre) m (CountedSortedSet. cmpr post)]))
   SplitAt
     (ft-split-at [this n notfound]
       (cond
@@ -535,11 +531,6 @@
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
       (ft-split-at this n nil))
-;  Tree
-;    (app3 [_ ts t2] (CountedSortedSet. cmpr (app3 tree ts t2)))
-;    (app3deep [_ ts t1] (CountedSortedSet. cmpr (app3deep tree ts t1)))
-;    (measureMore [_] (measureMore tree))
-;    (measurePop [_] (measurePop tree))
   Counted
     (count [_] (:len (measured tree)))
   IPersistentSet
@@ -697,7 +688,15 @@
         (test-split-at lenvec (apply counted-sorted-set lenvec)
                        CountedSortedSet)))))
 
-; for CSS: peek/pop, subseq, rsubseq
+(deftest CSSPeekPop
+  (let [basevec (vec (map #(format "x%02d" %) (range 50)))]
+    (loop [v basevec, t (apply counted-sorted-set basevec)]
+      (is (= (peek v) (peek t)))
+      (is (= v t))
+      (when (seq v)
+        (recur (pop v) (pop t))))))
+
+; for CSS: subseq, rsubseq
 
 (defrecord Len-Meter [^int len])
 (def measure-len (constantly (Len-Meter. 1)))
