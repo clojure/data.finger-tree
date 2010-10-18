@@ -576,3 +576,25 @@
     (into default-empty-set args)))
 
 ;(prefer-method clojure.pprint/simple-dispatch IPersistentSet ISeq)
+
+(defprotocol PrintableTree
+  (print-tree [tree]))
+
+(defn- p [t & xs]
+  (print "<")
+  (print t)
+  (doseq [x xs]
+    (print " ")
+    (print-tree x))
+  (print ">"))
+
+(extend-protocol PrintableTree
+  Digit1      (print-tree [x] (p "Digit1" (.a x)))
+  Digit2      (print-tree [x] (p "Digit2" (.a x) (.b x)))
+  Digit3      (print-tree [x] (p "Digit3" (.a x) (.b x) (.c x)))
+  Digit4      (print-tree [x] (p "Digit4" (.a x) (.b x) (.c x) (.d x)))
+  EmptyTree   (print-tree [x] (p "EmptyTree"))
+  DelayedTree (print-tree [x] (p "DelayedTree" @(.tree-ref x)))
+  DeepTree    (print-tree [x] (p "DeepTree" (.pre x) (.mid x) (.suf x)))
+  SingleTree  (print-tree [x] (p "SingleTree" (.x x)))
+  Object      (print-tree [x] (pr x)))
