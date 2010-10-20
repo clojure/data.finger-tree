@@ -454,8 +454,8 @@
     (ft-split-at [this n]
       (ft-split-at this n nil))
   Tree
-    (app3 [_ ts t2] (CountedDoubleList. (app3 tree ts t2)))
-    (app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1)))
+    (app3 [_ ts t2] (CountedDoubleList. (app3 tree ts (.tree t2))))
+    ;(app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1)))
     (measureMore [_] (measureMore tree))
     (measurePop [_] (measurePop tree))
   Counted
