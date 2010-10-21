@@ -448,7 +448,7 @@
       (cond
         (< n 0) [(empty this) notfound this]
         (< n (count this))
-          (let [[pre m post] (split-tree tree #(< n %))]
+          (let [[pre m post] (split-tree tree #(> % n))]
             [(CountedDoubleList. pre) m (CountedDoubleList. post)])
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
@@ -466,22 +466,22 @@
         (== k -1) (consl this v)
         (== k (measured tree)) (conjr this v)
         (< -1 k (measured tree))
-          (let [[pre mid post] (split-tree tree #(< k %))]
+          (let [[pre mid post] (split-tree tree #(> % k))]
             (CountedDoubleList. (ft-concat (conjr pre v) post)))
         :else (throw (IndexOutOfBoundsException.))))
     (containsKey [_ k] (< -1 k (measured tree)))
     (entryAt [_ n] (clojure.lang.MapEntry.
-                     n (second (split-tree tree #(< n %)))))
+                     n (second (split-tree tree #(> % n)))))
     (valAt [this n notfound] (if (.containsKey this n)
-                               (second (split-tree tree #(< n %)))
+                               (second (split-tree tree #(> % n)))
                                notfound))
     (valAt [this n] (.valAt this n nil))
   Indexed
     (nth [this n notfound] (if (.containsKey this n)
-                             (second (split-tree tree #(< n %)))
+                             (second (split-tree tree #(> % n)))
                              notfound))
     (nth [this n] (if (.containsKey this n)
-                    (second (split-tree tree #(< n %)))
+                    (second (split-tree tree #(> % n)))
                     (throw (IndexOutOfBoundsException.)))))
 
 (let [measure-len (constantly 1)
@@ -527,7 +527,7 @@
     (ft-split-at [this n notfound]
       (cond
         (< n 0) [(empty this) notfound this]
-        (< n (count this)) (let [[l x r] (split-tree tree #(< n (:len %)))]
+        (< n (count this)) (let [[l x r] (split-tree tree #(> (:len %) n))]
                              [(CountedSortedSet. cmpr l) x
                               (CountedSortedSet. cmpr r)])
         :else [this notfound (empty this)]))
@@ -546,10 +546,10 @@
         (when (= x k) k)))
   Indexed
     (nth [this n notfound] (if (< -1 n (:len (measured tree)))
-                             (second (split-tree tree #(< n (:len %))))
+                             (second (split-tree tree #(> (:len %) n)))
                              notfound))
     (nth [this n] (if (< -1 n (:len (measured tree)))
-                    (second (split-tree tree #(< n (:len %))))
+                    (second (split-tree tree #(> (:len %) n)))
                     (throw (IndexOutOfBoundsException.))))
   Sorted
     (comparator [_] cmpr)
