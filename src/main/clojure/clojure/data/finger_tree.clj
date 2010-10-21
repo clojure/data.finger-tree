@@ -84,9 +84,9 @@
                           (range (count items)))
             :else notfound#))
       IPersistentCollection
-        (cons [_ x]) ; TBD
+        (cons [this# x#] (conjr this# x#))
         (empty [_]) ; TBD ; not needed?
-        (equiv [_ x]) ; TBD
+        (equiv [_ x] false) ; TBD
       ISeq
         (first     [_] ~(first items))
         (more      [_] ~(if (> (count items) 1)
@@ -170,7 +170,7 @@
   Seqable
     (seq [_] nil)
   IPersistentCollection
-    (cons [_ x]) ; TBD
+    (cons [this x] (conjr this x))
     (count [_] 0) ; not needed?
     (empty [this] this)
     (equiv [_ x] false) ; TBD
@@ -211,10 +211,10 @@
   Seqable
     (seq [this] this)
   IPersistentCollection
-    (cons [_ x]) ; TBD
+    (cons [this x] (conjr this x))
     (count [_]) ; not needed?
     (empty [_] (EmptyTree. meter-obj)) ; not needed?
-    (equiv [_ x]) ; TBD
+    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] x)
     (more [_] (EmptyTree. meter-obj))
@@ -249,10 +249,10 @@
   Seqable
     (seq [this] this)
   IPersistentCollection
-    (cons [_ x]) ; TBD
+    (cons [this x] (conjr this x))
     (count [_]) ; not needed?
     (empty [_] (empty @tree-ref))
-    (equiv [_ x]) ; TBD
+    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first @tree-ref))
     (more [_] (rest @tree-ref))
@@ -320,10 +320,10 @@
   Seqable
     (seq [this] this)
   IPersistentCollection
-    (cons [_ x]) ; TBD
+    (cons [this x] (conjr this x))
     (count [_]) ; not needed?
     (empty [_] (newEmptyTree meter-obj))
-    (equiv [_ x]) ; TBD
+    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first pre))
     (more [_] (deep-left (rest pre) mid suf))
@@ -394,7 +394,7 @@
   Seqable
     (seq [this] (when (seq tree) this))
   IPersistentCollection
-    (cons [_ x] (DoubleList. (conjr tree x)))
+    (cons [this x] (conjr this x))
     (count [_] (count (seq tree))) ; Slow!
     (empty [_] (DoubleList. (empty tree)))
     (equiv [_ x] false) ; TBD
@@ -425,7 +425,7 @@
   Seqable
     (seq [this] (when (seq tree) this))
   IPersistentCollection
-    (cons [_ x] (CountedDoubleList. (conjr tree x)))
+    (cons [this x] (conjr this x))
     (empty [_] (CountedDoubleList. (empty tree)))
     (equiv [_ x] false) ; TBD
   ISeq
