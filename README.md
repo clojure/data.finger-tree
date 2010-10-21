@@ -94,4 +94,23 @@ This is like counted-double-list, but does not support `consl` or
     (nth css 5)       ; O(log(n))
     ;=> f
 
+## Build-your-own finger tree
+
+    (def empty-cost-tree (finger-tree (meter :cost 0 +)))
+
+    (def ct (conj empty-cost-tree
+                  {:id :h, :cost 5} {:id :i, :cost 1}
+                  {:id :j, :cost 2} {:id :k, :cost 3}
+                  {:id :k, :cost 4}))
+
+    (measured ct)
+    ;=> 11
+
+    (first (split-tree ct #(< 7 %)))
+    ;=> ({:id :h, :cost 5} {:id :i, :cost 1})
+
+    (first (split-tree (rest ct) #(< 7 %)))
+    ;=> ({:id :i, :cost 1} {:id :j, :cost 2}
+    ;    {:id :k, :cost 3})
+
 [1]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
