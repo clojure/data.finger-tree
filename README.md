@@ -101,16 +101,16 @@ This is like counted-double-list, but does not support `consl` or
     (def ct (conj empty-cost-tree
                   {:id :h, :cost 5} {:id :i, :cost 1}
                   {:id :j, :cost 2} {:id :k, :cost 3}
-                  {:id :k, :cost 4}))
+                  {:id :l, :cost 4}))
 
     (measured ct)
-    ;=> 11
+    ;=> 15
 
-    (first (split-tree ct #(< 7 %)))
-    ;=> ({:id :h, :cost 5} {:id :i, :cost 1})
+    (next (split-tree ct #(> % 7)))
+    ;=> ({:cost 2, :id :j}
+         ({:cost 3, :id :k} {:cost 4, :id :l}))
 
-    (first (split-tree (rest ct) #(< 7 %)))
-    ;=> ({:id :i, :cost 1} {:id :j, :cost 2}
-    ;    {:id :k, :cost 3})
+    (next (split-tree (rest ct) #(> % 7)))
+    ;=> ({:cost 4, :id :l} ())
 
 [1]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
