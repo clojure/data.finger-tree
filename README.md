@@ -15,12 +15,12 @@ Then load up the finger-tree lib and start playing with it:
 
 # Talk
 
-Slides for my Clojure Conj talk about this library [are available][1]
+Thanks to heroku for hosting the [slides for my Clojure Conj talk][1] about this library.  The rather raw sources and enormous PDF of the slides are at [github][2].
 
 # Examples
 
 The finger-tree lib actually includes several collections built on top
-of [Ralf Hinze and Ross Paterson's finger trees][2].  Here are some
+of [Ralf Hinze and Ross Paterson's finger trees][3].  Here are some
 examples of each of them:
 
 ## double-list
@@ -117,5 +117,6 @@ This is like counted-double-list, but does not support `consl` or
     (next (split-tree (rest ct) #(> % 7)))
     ;=> ({:cost 4, :id :l} ())
 
-[1]: http://github.com/Chouser/talk-finger-tree
-[2]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
+[1]: http://talk-finger-tree.heroku.com/
+[2]: http://github.com/Chouser/talk-finger-tree
+[3]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
