@@ -242,3 +242,27 @@
             [(finger-tree right-meter) (sorted-set)]
             (take 1000 (repeatedly #(.nextInt r))))))
 
+(deftest Remove-From-Empty-Trees
+  (is (= () (pop (double-list))))
+  (is (= () (rest (double-list))))
+  (is (= () (pop (counted-double-list))))
+  (is (= () (rest (counted-double-list))))
+  (is (= () (pop (counted-sorted-set))))
+  (is (= () (rest (counted-sorted-set))))
+  (is (= () (disj (counted-sorted-set) :foo))))
+
+(deftest Get-Empty-Trees
+  (is (nil? (first (double-list))))
+  (is (nil? (peek (double-list))))
+  (is (nil? (get (double-list) :anything)))
+  (is (nil? (first (counted-double-list))))
+  (is (nil? (peek (counted-double-list))))
+  (is (nil? (get (counted-double-list) 0)))
+  (is (nil? (first (counted-sorted-set))))
+  (is (nil? (peek (counted-sorted-set))))
+  (is (nil? (get (counted-sorted-set) :foo))))
+
+(deftest Get-Not-Found
+  (is (= :notfound (get (double-list) :anything :notfound)))
+  (is (= :notfound (get (counted-double-list) 0 :notfound)))
+  (is (= :notfound (get (counted-sorted-set) :foo :notfound))))

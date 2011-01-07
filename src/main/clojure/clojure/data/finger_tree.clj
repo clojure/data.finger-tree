@@ -9,7 +9,7 @@
 (ns ^{:doc "Persistent collections based on 2-3 finger trees."
       :author "Chris Houser"}
   clojure.data.finger-tree
-  (:import (clojure.lang Seqable Sequential ISeq IPersistentSet
+  (:import (clojure.lang Seqable Sequential ISeq IPersistentSet ILookup
                          IPersistentStack IPersistentCollection Associative
                          Sorted Reversible Indexed Counted)))
 
@@ -27,7 +27,7 @@
 - add sorted map with index?
 )
 
-;(set! *warn-on-reflection* true)
+(set! *warn-on-reflection* true)
 
 (defprotocol DoubleSeq
   (consl [s a] "Append a to the left-hand side of s")
@@ -454,7 +454,8 @@
     (ft-split-at [this n]
       (ft-split-at this n nil))
   Tree
-    (app3 [_ ts t2] (CountedDoubleList. (app3 tree ts (.tree t2))))
+    (app3 [_ ts t2]
+      (CountedDoubleList. (app3 tree ts (.tree ^CountedDoubleList t2))))
     ;(app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1)))
     (measureMore [_] (measureMore tree))
     (measurePop [_] (measurePop tree))
@@ -535,15 +536,25 @@
       (ft-split-at this n nil))
   Counted
     (count [_] (:len (measured tree)))
+  ILookup
+    (valAt [_ k notfound]
+      (if (empty? tree)
+        notfound
+        (let [x (second (split-tree tree #(>= 0 (cmpr k (:right %)))))]
+          (if (= x k)
+            k
+            notfound))))
+    (valAt [this k]
+      (.valAt this k nil))
   IPersistentSet
     (disjoin [this k]
-      (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
-        (if (= x k)
-          (CountedSortedSet. cmpr (ft-concat l r))
-          this)))
-    (get [_ k]
-      (let [x (second (split-tree tree #(>= 0 (cmpr k (:right %)))))]
-        (when (= x k) k)))
+      (if (empty? tree)
+        this
+        (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
+          (if (= x k)
+            (CountedSortedSet. cmpr (ft-concat l r))
+            this))))
+    (get [this k] (.valAt this k nil))
   Indexed
     (nth [this n notfound] (if (< -1 n (:len (measured tree)))
                              (second (split-tree tree #(> (:len %) n)))
