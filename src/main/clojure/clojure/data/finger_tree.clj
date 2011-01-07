@@ -27,7 +27,7 @@
 - add sorted map with index?
 )
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 (defprotocol DoubleSeq
   (consl [s a] "Append a to the left-hand side of s")
