@@ -3,22 +3,23 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>data.finger-tree</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Persistent collections based on 2-3 finger trees.</name>
-
-  <parent>
-    <groupId>org.clojure</groupId>
-    <artifactId>pom.contrib</artifactId>
-    <version>0.0.20-SNAPSHOT</version>
-  </parent>
+  <name>data.finger-tree</name>
+  <description>Persistent collections based on 2-3 finger trees.</description>
 
   <developers>
     <developer>
       <name>Chouser</name>
-      <url>http://chouser.n01se.net</url>
       <email>chouser@n01se.net</email>
+      <url>http://chouser.n01se.net</url>
       <timezone>-5</timezone>
     </developer>
   </developers>
+
+  <parent>
+    <groupId>org.clojure</groupId>
+    <artifactId>pom.contrib</artifactId>
+    <version>0.0.20</version>
+  </parent>
 
   <scm>
     <connection>scm:git:git@github.com:clojure/data.finger-tree.git</connection>

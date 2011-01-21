@@ -14,7 +14,7 @@
          :only [finger-tree meter consl conjr ft-concat ft-split-at split-tree
                 opfn idElem measure measured to-tree getMeter
                 double-list counted-double-list counted-sorted-set]])
-  (:import (clojure.data.finger-tree CountedSortedSet CountedDoubleList)))
+  (:import (clojure.data.finger_tree CountedSortedSet CountedDoubleList)))
 
 (deftest Conj-Seq-Queue
   (let [len 100]
