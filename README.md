@@ -1,4 +1,37 @@
+# Finger Trees
+
+Finger trees are a versitle family of persistent collections.  This
+library includes everything you need to make your own, as well a few
+ready-to-use collection types:
+
+- **double-list** is a sequential collection that provides
+  constant-time access to both the left and right ends.
+
+- **counted-double-list** provides all the features of double-list
+  plus constant-time `count` and log-n `nth`.
+
+- **counted-sorted-set** is sorted set that also provides log-n `nth`
+
+There are examples of all these later in the README.
+
 # Finger Tree Quickstart
+
+## project.clj
+
+If you use leiningen or cake, add this to the `:dependencies` in your
+`project.clj`:
+
+    [org.clojure/data.finger-tree "0.0.1"]
+
+## pom.xml
+
+If you use maven, add this to the `<dependencies>` in your `pom.xml`:
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>data.finger-tree</artifactId>
+      <version>0.0.1</version>
+    </dependency>
 
 You'll need git and maven, then execute the following at a shell
 prompt to fetch finger trees and all its dependencies (including
@@ -8,10 +41,13 @@ a recent snapshot of Clojure itself) and start a REPL:
     cd fingertree
     mvn clojure:repl
 
-Then load up the finger-tree lib and start playing with it:
+## use/require
 
-    (use 'clojure.data.finger-tree)
-    (apply double-list '[a b c d e f g h i j k l m n o p q])
+Regardless of how you fetch the dependency, to you a finger-tree
+function in your project you'll need to add something like this to
+your `ns` declaration:
+
+    (:use [clojure.data.finger-tree :only [double-list]])
 
 # Talk
 
