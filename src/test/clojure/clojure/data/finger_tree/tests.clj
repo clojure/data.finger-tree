@@ -11,7 +11,7 @@
   clojure.data.finger-tree.tests
   (:use [clojure.test :only [deftest is are]]
         [clojure.data.finger-tree
-         :only [finger-tree meter consl conjr ft-concat ft-split-at split-tree
+         :only [finger-tree meter conjl ft-concat ft-split-at split-tree
                 opfn idElem measure measured to-tree getMeter
                 double-list counted-double-list counted-sorted-set]])
   (:import (clojure.data.finger_tree CountedSortedSet CountedDoubleList)))
@@ -19,14 +19,14 @@
 (deftest Conj-Seq-Queue
   (let [len 100]
     (are [x] (= (map identity x) (range len))
-      (rseq (reduce consl (double-list) (range len)))
-      (seq  (reduce conjr (double-list) (range len))))))
+      (rseq (reduce conjl (double-list) (range len)))
+      (seq  (reduce conj  (double-list) (range len))))))
 
 (deftest Conj-Seq-Stack
   (let [len 100]
     (are [x] (= (map identity x) (range (dec len) -1 -1))
-      (rseq (reduce conjr (double-list) (range len)))
-      (seq  (reduce consl (double-list) (range len))))))
+      (rseq (reduce conj  (double-list) (range len)))
+      (seq  (reduce conjl (double-list) (range len))))))
     
 (deftest Conj-Seq-Mixed
   (doseq [m (range 2 7)]
@@ -34,8 +34,8 @@
       (when (< i 40)
         (is (= (seq (map identity ft)) (seq vc)))
         (if (zero? (rem i m))
-          (recur (consl ft i) (vec (cons i vc)) (inc i))
-          (recur (conjr ft i) (conj vc i)       (inc i)))))))
+          (recur (conjl ft i) (vec (cons i vc)) (inc i))
+          (recur (conj  ft i) (conj vc i)       (inc i)))))))
 
 (deftest Concat
   (doseq [a-len (range 25), b-len (range 25)]
@@ -169,9 +169,9 @@
   (let [measure-fns len-string-meter]
     (let [len 100]
       (are [x] (= x (Len-String-Meter. len (apply str (range len))))
-        (measured (reduce conjr (finger-tree measure-fns) (range len))))
+        (measured (reduce conj  (finger-tree measure-fns) (range len))))
       (are [x] (= x (Len-String-Meter. len (apply str (reverse (range len)))))
-        (measured (reduce consl (finger-tree measure-fns) (range len)))))))
+        (measured (reduce conjl (finger-tree measure-fns) (range len)))))))
       
 (deftest Annotate-Mixed-Conj
   (let [measure-fns len-string-meter]
@@ -180,14 +180,14 @@
         (when (< i 40)
           (is (= (measured ft) (Len-String-Meter. (count vc) (apply str vc))))
           (if (zero? (rem i m))
-            (recur (consl ft i) (vec (cons i vc)) (inc i))
-            (recur (conjr ft i) (conj vc i)       (inc i))))))))
+            (recur (conjl ft i) (vec (cons i vc)) (inc i))
+            (recur (conj  ft i) (conj vc i)       (inc i))))))))
 
 (deftest Ann-Conj-Seq-Queue
   (let [len 100]
     (are [x] (= (map identity x) (range len))
-      (rseq (reduce consl (counted-double-list) (range len)))
-      (seq  (reduce conjr (counted-double-list) (range len))))))
+      (rseq (reduce conjl (counted-double-list) (range len)))
+      (seq  (reduce conj  (counted-double-list) (range len))))))
 
 (deftest Counted-Test
   (let [xs (map #(str "x" %) (range 1000))
@@ -224,10 +224,10 @@
 
 (defn insert-where [tree pred value]
   (if (empty? tree)
-    (conjr tree value)
+    (conj tree value)
     (let [[l x r] (split-tree tree pred)
           [a b] (if (pred (measure (getMeter tree) x)) [value x] [x value])]
-      (ft-concat (conjr l a) (consl r b)))))
+      (ft-concat (conj l a) (conjl r b)))))
   
 
 (deftest Sorted-Set

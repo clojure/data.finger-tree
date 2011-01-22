@@ -19,7 +19,6 @@
 - implement equals
 - implement IMeta
 - implement IChunkedSeq?
-- fix clojure core.clj to call consLeft/consRight
 - replace copy/pasted code with macros
 - test dequeue complexity
 - confirm recursion is bounded, though perhaps O(log n) growth is slow enough
@@ -29,9 +28,8 @@
 
 ;(set! *warn-on-reflection* true)
 
-(defprotocol DoubleSeq
-  (consl [s a] "Append a to the left-hand side of s")
-  (conjr [s b] "Append b to the right-hand side of s"))
+(defprotocol ConjL
+  (conjl [s a] "Append a to the left-hand side of s"))
 
 (defprotocol ObjMeter
   "Object for annotating tree elements.  idElem and op together form a Monoid."
@@ -83,10 +81,6 @@
                           items
                           (range (count items)))
             :else notfound#))
-      IPersistentCollection
-        (cons [this# x#] (conjr this# x#))
-        (empty [_]) ; TBD ; not needed?
-        (equiv [_ x] false) ; TBD
       ISeq
         (first     [_] ~(first items))
         (more      [_] ~(if (> (count items) 1)
@@ -99,9 +93,12 @@
         (pop       [_] ~(if (> (count items) 1)
                           `(digit ~'meter-obj ~@(drop-last items))
                           `(newEmptyTree ~'meter-obj)))
-      DoubleSeq
-        (consl [_ x#] (digit ~'meter-obj x# ~@items))
-        (conjr [_ x#] (digit ~'meter-obj ~@items x#))
+      IPersistentCollection
+        (empty [_]) ; TBD ; not needed?
+        (equiv [_ x] false) ; TBD
+        (cons  [_ x#] (digit ~'meter-obj ~@items x#))
+      ConjL
+        (conjl [_ x#] (digit ~'meter-obj x# ~@items))
       Measured
         (measured [_] @~'measure-ref)
         (getMeter [_] ~'meter-obj) ; not needed?
@@ -169,11 +166,6 @@
 (deftype EmptyTree [meter-obj]
   Seqable
     (seq [_] nil)
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (count [_] 0) ; not needed?
-    (empty [this] this)
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] nil)
     (more [this] this)
@@ -183,17 +175,21 @@
     (pop [this] this)
   Reversible
     (rseq [_] nil)
-  DoubleSeq
-    (consl [_ a] (newSingleTree meter-obj a))
-    (conjr [_ b] (newSingleTree meter-obj b))
+  IPersistentCollection
+    (count [_] 0) ; not needed?
+    (empty [this] this)
+    (equiv [_ x] false) ; TBD
+    (cons  [_ b] (newSingleTree meter-obj b))
+  ConjL
+    (conjl [_ a] (newSingleTree meter-obj a))
   Measured
     (measured [_] (idElem meter-obj))
     (getMeter [_] meter-obj) ; not needed?
 ;  Splittable
 ;    (split [pred acc]) ; TBD -- not needed??
   Tree
-    (app3 [_ ts t2] (reduce consl t2 (reverse ts)))
-    (app3deep [_ ts t1] (reduce conjr t1 ts))
+    (app3 [_ ts t2] (reduce conjl t2 (reverse ts)))
+    (app3deep [_ ts t1] (reduce conj t1 ts))
     (measureMore [_] (idElem meter-obj))
     (measurePop [_] (idElem meter-obj)))
 
@@ -210,11 +206,6 @@
 (deftype SingleTree [meter-obj x]
   Seqable
     (seq [this] this)
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (count [_]) ; not needed?
-    (empty [_] (EmptyTree. meter-obj)) ; not needed?
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] x)
     (more [_] (EmptyTree. meter-obj))
@@ -224,21 +215,25 @@
     (pop [_] (EmptyTree. meter-obj))
   Reversible
     (rseq [_] (list x)) ; not 'this' because tree ops can't be reversed
-  DoubleSeq
-    (consl [_ a] (deep (digit meter-obj a)
-                       (EmptyTree. (finger-meter meter-obj))
-                       (digit meter-obj x)))
-    (conjr [_ b] (deep (digit meter-obj x)
+  IPersistentCollection
+    (count [_]) ; not needed?
+    (empty [_] (EmptyTree. meter-obj)) ; not needed?
+    (equiv [_ x] false) ; TBD
+    (cons  [_ b] (deep (digit meter-obj x)
                        (EmptyTree. (finger-meter meter-obj))
                        (digit meter-obj b)))
+  ConjL
+    (conjl [_ a] (deep (digit meter-obj a)
+                       (EmptyTree. (finger-meter meter-obj))
+                       (digit meter-obj x)))
   Measured
     (measured [_] (measure meter-obj x))
     (getMeter [_] meter-obj) ; not needed?
   Splittable
     (split [this pred acc] (let [e (empty this)] [e x e]))
   Tree
-    (app3 [this ts t2] (consl (app3 (empty this) ts t2) x))
-    (app3deep [_ ts t1] (conjr (reduce conjr t1 ts) x))
+    (app3 [this ts t2] (conjl (app3 (empty this) ts t2) x))
+    (app3deep [_ ts t1] (conj (reduce conj t1 ts) x))
     (measureMore [_] (idElem meter-obj))
     (measurePop [_] (idElem meter-obj)))
 
@@ -248,11 +243,6 @@
 (deftype DelayedTree [tree-ref mval]
   Seqable
     (seq [this] this)
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (count [_]) ; not needed?
-    (empty [_] (empty @tree-ref))
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first @tree-ref))
     (more [_] (rest @tree-ref))
@@ -262,9 +252,13 @@
     (pop [_] (pop @tree-ref))
   Reversible
     (rseq [_] (rseq @tree-ref)) ; not this because tree ops can't be reversed
-  DoubleSeq
-    (consl [_ a] (consl @tree-ref a))
-    (conjr [_ b] (conjr @tree-ref b))
+  IPersistentCollection
+    (count [_]) ; not needed?
+    (empty [_] (empty @tree-ref))
+    (equiv [_ x] false) ; TBD
+    (cons  [_ b] (conj @tree-ref b))
+  ConjL
+    (conjl [_ a] (conjl @tree-ref a))
   Measured
     (measured [_] mval)
     (getMeter [_] (getMeter @tree-ref)) ; not needed?
@@ -282,7 +276,7 @@
   ;`(delayed-ft (delay (do (print "\nforce ") ~tree-expr)) ~mval))
 
 (defn ^:static to-tree [meter-obj coll]
-  (reduce conjr (EmptyTree. meter-obj) coll))
+  (reduce conj (EmptyTree. meter-obj) coll))
 
 (defn deep-left [pre m suf]
   (cond
@@ -319,11 +313,6 @@
 (deftype DeepTree [meter-obj pre mid suf mval]
   Seqable
     (seq [this] this)
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (count [_]) ; not needed?
-    (empty [_] (newEmptyTree meter-obj))
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first pre))
     (more [_] (deep-left (rest pre) mid suf))
@@ -333,17 +322,21 @@
     (pop [_] (deep-right pre mid (pop suf)))
   Reversible
     (rseq [this] (lazy-seq (cons (peek this) (rseq (pop this)))))
-  DoubleSeq
-    (consl [_ a] (if (< (count pre) 4)
-                   (deep (consl pre a) mid suf)
-                   (let [[b c d e] pre
-                         n (digit meter-obj c d e)]
-                     (deep (digit meter-obj a b) (consl mid n) suf))))
-    (conjr [_ a] (if (< (count suf) 4)
-                   (deep pre mid (conjr suf a))
+  IPersistentCollection
+    (count [_]) ; not needed?
+    (empty [_] (newEmptyTree meter-obj))
+    (equiv [_ x] false) ; TBD
+    (cons  [_ a] (if (< (count suf) 4)
+                   (deep pre mid (conj suf a))
                    (let [[e d c b] suf
                          n (digit meter-obj e d c)]
-                     (deep pre (conjr mid n) (digit meter-obj b a)))))
+                     (deep pre (conj mid n) (digit meter-obj b a)))))
+  ConjL
+    (conjl [_ a] (if (< (count pre) 4)
+                   (deep (conjl pre a) mid suf)
+                   (let [[b c d e] pre
+                         n (digit meter-obj c d e)]
+                     (deep (digit meter-obj a b) (conjl mid n) suf))))
   Measured
     (measured [_] @mval)
     (getMeter [_] (getMeter pre)) ; not needed?
@@ -393,11 +386,6 @@
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (count [_] (count (seq tree))) ; Slow!
-    (empty [_] (DoubleList. (empty tree)))
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first tree))
     (more [_] (DoubleList. (rest tree)))
@@ -407,9 +395,13 @@
     (pop [_] (DoubleList. (pop tree)))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
-  DoubleSeq
-    (consl [_ a] (DoubleList. (consl tree a)))
-    (conjr [_ b] (DoubleList. (conjr tree b)))
+  IPersistentCollection
+    (count [_] (count (seq tree))) ; Slow!
+    (empty [_] (DoubleList. (empty tree)))
+    (equiv [_ x] false) ; TBD
+    (cons  [_ b] (DoubleList. (conj tree b)))
+  ConjL
+    (conjl [_ a] (DoubleList. (conjl tree a)))
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree))
@@ -424,10 +416,6 @@
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
-  IPersistentCollection
-    (cons [this x] (conjr this x))
-    (empty [_] (CountedDoubleList. (empty tree)))
-    (equiv [_ x] false) ; TBD
   ISeq
     (first [_] (first tree))
     (more [_] (CountedDoubleList. (rest tree)))
@@ -437,9 +425,12 @@
     (pop [_] (CountedDoubleList. (pop tree)))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
-  DoubleSeq
-    (consl [_ a] (CountedDoubleList. (consl tree a)))
-    (conjr [_ b] (CountedDoubleList. (conjr tree b)))
+  IPersistentCollection
+    (empty [_] (CountedDoubleList. (empty tree)))
+    (equiv [_ x] false) ; TBD
+    (cons  [_ b] (CountedDoubleList. (conj tree b)))
+  ConjL
+    (conjl [_ a] (CountedDoubleList. (conjl tree a)))
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree)) ; not needed?
@@ -464,11 +455,11 @@
   Associative
     (assoc [this k v]
       (cond
-        (== k -1) (consl this v)
-        (== k (measured tree)) (conjr this v)
+        (== k -1) (conjl this v)
+        (== k (measured tree)) (conj this v)
         (< -1 k (measured tree))
           (let [[pre mid post] (split-tree tree #(> % k))]
-            (CountedDoubleList. (ft-concat (conjr pre v) post)))
+            (CountedDoubleList. (ft-concat (conj pre v) post)))
         :else (throw (IndexOutOfBoundsException.))))
     (containsKey [_ k] (< -1 k (measured tree)))
     (entryAt [_ n] (clojure.lang.MapEntry.
@@ -503,13 +494,13 @@
   IPersistentCollection
     (cons [this value]
       (if (empty? tree)
-        (CountedSortedSet. cmpr (conjr tree value))
+        (CountedSortedSet. cmpr (conj tree value))
         (let [[l x r] (split-tree tree #(>= 0 (cmpr value (:right %))))
               compared (cmpr value x)]
           (if (zero? compared)
             this ; already in set
             (let [[a b] (if (>= 0 compared) [value x] [x value])]
-              (CountedSortedSet. cmpr (ft-concat (conjr l a) (consl r b))))))))
+              (CountedSortedSet. cmpr (ft-concat (conj l a) (conjl r b))))))))
     (empty [_] (CountedSortedSet. cmpr (empty tree)))
     (equiv [_ x] false) ; TBD
   ISeq
@@ -569,8 +560,8 @@
     (seqFrom [_ k ascending?]
       (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
         (if ascending?
-          (CountedSortedSet. cmpr (consl r x))
-          (rseq (conjr l x))))))
+          (CountedSortedSet. cmpr (conjl r x))
+          (rseq (conj l x))))))
 
 (let [measure-lr (fn [x] (Len-Right-Meter. 1 x))
       zero-lr (Len-Right-Meter. 0 nil)

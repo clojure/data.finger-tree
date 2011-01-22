@@ -36,13 +36,13 @@ access to both the left and right ends:
     [(first dl) (rest dl)]
     ;=> [4 (5 6 7)]
 
-    (consl dl 'x)
+    (conjl dl 'x)
     ;=> (x 4 5 6 7)
 
     [(pop dl) (peek dl)]
     ;=> [(4 5 6) 7]
 
-    (conjr dl 'x)
+    (conj dl 'x)
     ;=> (4 5 6 7 x)
 
 ## counted-double-list
@@ -66,7 +66,7 @@ This provides all the features of double-list plus constant-time
     parts
     ;=> {:left (a b c d e), :right (g h i j k l m)}
 
-    (ft-concat (conjr (:left parts) 'XX) (:right parts))
+    (ft-concat (conj (:left parts) 'XX) (:right parts))
     ;=> (a b c d e XX g h i j k l m)
 
     (ft-concat (:left parts) (:right parts))
@@ -78,8 +78,7 @@ This provides all the features of double-list plus constant-time
 
 ## counted-sorted-set
 
-This is like counted-double-list, but does not support `consl` or
-`conjr`.  Instead, `conj` is used to insert items in sorted order.
+This is like counted-double-list, but does not support `conjl`.  Instead, `conj` is used to insert items in sorted order.
 
     (def css (apply counted-sorted-set
                     '[m j i e d a f k b c f g h l]))
