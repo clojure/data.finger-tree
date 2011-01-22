@@ -37,10 +37,6 @@ You'll need git and maven, then execute the following at a shell
 prompt to fetch finger trees and all its dependencies (including
 a recent snapshot of Clojure itself) and start a REPL:
 
-    git clone git://github.com/clojure/data.finger-tree.git fingertree
-    cd fingertree
-    mvn clojure:repl
-
 ## use/require
 
 Regardless of how you fetch the dependency, to you a finger-tree
