@@ -394,6 +394,7 @@
 (deftype DoubleList [tree]
   Object
     (equals [_ x] (seq-equals tree x))
+    (hashCode [this] (hash (map identity this)))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
@@ -426,6 +427,7 @@
 (deftype CountedDoubleList [tree]
   Object
     (equals [_ x] (seq-equals tree x))
+    (hashCode [this] (hash (map identity this)))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))

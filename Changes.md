@@ -4,8 +4,9 @@
 
 - Renamed `consl` to `conjl` (same argument order)
 - Removed `conjr` -- just use `conj` for appending on the right
-- Implement equality
+- Implemented equality
   - counted-sorted-set can be equal to both sets and sequentials
+- Implemented hashCode
 
 ### Version 0.0.1
 
