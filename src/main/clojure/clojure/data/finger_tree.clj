@@ -16,7 +16,6 @@
 (comment ; TODO:
 
 - implement java.util.Collection
-- implement equals
 - implement IMeta
 - implement IChunkedSeq?
 - replace copy/pasted code with macros
@@ -380,9 +379,21 @@
   (assert (= (getMeter t1) (getMeter t2))) ;meters must be the same
   (app3 t1 nil t2))
 
+(defn- seq-equals [a b]
+  (boolean
+    (when (or (sequential? b) (instance? java.util.List b))
+      (loop [a (seq a), b (seq b)]
+        (when (= (nil? a) (nil? b))
+          (or
+            (nil? a)
+            (when (= (first a) (first b))
+              (recur (next a) (next b)))))))))
+
 ;;=== applications ===
 
 (deftype DoubleList [tree]
+  Object
+    (equals [_ x] (seq-equals tree x))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
@@ -398,7 +409,7 @@
   IPersistentCollection
     (count [_] (count (seq tree))) ; Slow!
     (empty [_] (DoubleList. (empty tree)))
-    (equiv [_ x] false) ; TBD
+    (equiv [_ x] (seq-equals tree x))
     (cons  [_ b] (DoubleList. (conj tree b)))
   ConjL
     (conjl [_ a] (DoubleList. (conjl tree a)))
@@ -413,6 +424,8 @@
   (into (DoubleList. (EmptyTree. nil)) args))
 
 (deftype CountedDoubleList [tree]
+  Object
+    (equals [_ x] (seq-equals tree x))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
@@ -427,7 +440,7 @@
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
   IPersistentCollection
     (empty [_] (CountedDoubleList. (empty tree)))
-    (equiv [_ x] false) ; TBD
+    (equiv [_ x] (seq-equals tree x))
     (cons  [_ b] (CountedDoubleList. (conj tree b)))
   ConjL
     (conjl [_ a] (CountedDoubleList. (conjl tree a)))
@@ -487,8 +500,17 @@
 
 (defrecord Len-Right-Meter [^int len right])
 
+(def ^:private notfound (Object.))
+
 (deftype CountedSortedSet [cmpr tree]
-  Sequential
+  Object
+    (equals [_ x]
+      (boolean
+        (if (instance? java.util.Set x)
+          (and (= (count x) (count tree)) 
+               (every? #(contains? x %) tree))
+          (seq-equals tree x))))
+    (hashCode [_] (reduce + (map hash tree)))
   Seqable
     (seq [this] (when (seq tree) this))
   IPersistentCollection
@@ -502,7 +524,7 @@
             (let [[a b] (if (>= 0 compared) [value x] [x value])]
               (CountedSortedSet. cmpr (ft-concat (conj l a) (conjl r b))))))))
     (empty [_] (CountedSortedSet. cmpr (empty tree)))
-    (equiv [_ x] false) ; TBD
+    (equiv [this x] (.equals this x)) ; TBD
   ISeq
     (first [_] (first tree))
     (more [_] (CountedSortedSet. cmpr (rest tree)))
@@ -561,7 +583,19 @@
       (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
         (if ascending?
           (CountedSortedSet. cmpr (conjl r x))
-          (rseq (conj l x))))))
+          (rseq (conj l x)))))
+  java.util.Set
+    (contains [this x] (not= notfound (get this x notfound)))
+    (containsAll [this xs] (every? #(contains? this %) xs))
+    (isEmpty [_] (empty? tree))
+    (iterator [_]
+      (let [t (atom tree)]
+        (reify java.util.Iterator
+          (next [_] (first (swap! t next))) 
+          (hasNext [_] (boolean (next @t))))))
+    (size [this] (count this))
+    (toArray [_] nil) ; TBD
+    (toArray [_ a] nil)) ; TBD
 
 (let [measure-lr (fn [x] (Len-Right-Meter. 1 x))
       zero-lr (Len-Right-Meter. 0 nil)

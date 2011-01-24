@@ -18,13 +18,13 @@
 
 (deftest Conj-Seq-Queue
   (let [len 100]
-    (are [x] (= (map identity x) (range len))
+    (are [x] (and (= (range len) x) (= x (range len)) (= x x)) 
       (rseq (reduce conjl (double-list) (range len)))
       (seq  (reduce conj  (double-list) (range len))))))
 
 (deftest Conj-Seq-Stack
-  (let [len 100]
-    (are [x] (= (map identity x) (range (dec len) -1 -1))
+  (let [len 100, r (range (dec len) -1 -1)]
+    (are [x] (and (= x r) (= r x) (= x x)) 
       (rseq (reduce conj  (double-list) (range len)))
       (seq  (reduce conjl (double-list) (range len))))))
     
@@ -32,7 +32,9 @@
   (doseq [m (range 2 7)]
     (loop [ft (double-list), vc [], i (int 0)]
       (when (< i 40)
-        (is (= (seq (map identity ft)) (seq vc)))
+        (is (= ft vc))
+        (is (= vc ft))
+        (is (= ft ft))
         (if (zero? (rem i m))
           (recur (conjl ft i) (vec (cons i vc)) (inc i))
           (recur (conj  ft i) (conj vc i)       (inc i)))))))
@@ -42,8 +44,12 @@
     (let [a-s (map #(symbol (str % 'a)) (range a-len))
           b-s (map #(symbol (str % 'b)) (range b-len))
           a (apply double-list a-s)
-          b (apply double-list b-s)]
-      (is (= (seq (concat a-s b-s)) (seq (map identity (ft-concat a b))))))))
+          b (apply double-list b-s)
+          s (concat a-s b-s)
+          ft (ft-concat a b)]
+      (is (= s ft))
+      (is (= ft s))
+      (is (= ft ft)))))
 
 (defn test-split-at [expected-vec counted-tree tree-type]
   (dotimes [n (count expected-vec)]
@@ -63,7 +69,9 @@
     (is (zero? (count l)))
     (is (= (count expected-vec) (count r)))
     (is (empty? l))
-    (is (= expected-vec r)))
+    (is (= expected-vec r))
+    (is (= r expected-vec))
+    (is (= r r)))
 
   (let [len (count expected-vec)
         [l m r] (ft-split-at counted-tree len)]
@@ -73,6 +81,8 @@
     (is (= len (count l)))
     (is (zero? (count r)))
     (is (= expected-vec l))
+    (is (= l expected-vec))
+    (is (= l l))
     (is (empty? r))))
 
 (deftest CDLSplit
@@ -87,6 +97,8 @@
     (let [v (assoc (vec (range len)) n :x)
           cdl (assoc (apply counted-double-list (range len)) n :x)]
       (is (= v cdl))
+      (is (= cdl v))
+      (is (= cdl cdl))
       (doseq [i (range len)]
         (is (= (nth v i) (nth cdl i)))
         (is (= (get v i) (get cdl i))))
@@ -96,14 +108,18 @@
 
 (deftest CDLAssocCons
   (doseq [len (range 50)]
-    (is (= (vec (cons :x (range len)))
-           (assoc (apply counted-double-list (range len)) -1 :x)))))
+    (let [v (vec (cons :x (range len)))
+          cdl(assoc (apply counted-double-list (range len)) -1 :x)]
+    (is (= v cdl))
+    (is (= cdl v))
+    (is (= cdl cdl)))))
 
 (deftest CDLAssocFail
   (doseq [len (range 50), n [-2 (inc len)]]
     (is (thrown? Exception
                  (assoc (apply counted-double-list (range len)) n :x)))))
 
+; XXX continue here
 (deftest CSSConjDisj
   (let [values (vec (concat (range 50) [4.5 10.5 45.5 30.5]))]
     (dotimes [len (count values)]
@@ -111,11 +127,12 @@
             base (apply counted-sorted-set (take len values))] ; cons
         (is (= len (count base)))                    ; counted
         (dotimes [n len]
-          (is (= (seq pset) (conj base (values n)))) ; exclusive set, next
+          (is (= pset (conj base (values n))))       ; exclusive set, next
           (is (= (nth (seq pset) n) (nth base n)))   ; indexed lookup
           (is (= (values n) (get base (values n))))) ; set lookup
         (reduce (fn [[pset base] value]              ; disj
-                  (is (= (seq pset) base))
+                  (is (= pset base))
+                  (is (= base pset))
                   (is (= (count pset) (count base)))
                   [(disj pset value) (disj base value)])
                 [pset base] (take len values))))))
@@ -228,7 +245,7 @@
     (let [[l x r] (split-tree tree pred)
           [a b] (if (pred (measure (getMeter tree) x)) [value x] [x value])]
       (ft-concat (conj l a) (conjl r b)))))
-  
+
 
 (deftest Sorted-Set
   (let [r (java.util.Random. 42)]
@@ -266,3 +283,21 @@
   (is (= :notfound (get (double-list) :anything :notfound)))
   (is (= :notfound (get (counted-double-list) 0 :notfound)))
   (is (= :notfound (get (counted-sorted-set) :foo :notfound))))
+
+(deftest Unequal-Lists
+  (doseq [[a b] [[[] [1]] [[1] []] [[1] [2]] [[1 2] [2 1]]]
+          ctor [double-list counted-double-list]]
+    (let [aobj (apply ctor a)]
+      (is (not= aobj b))
+      (is (not= b aobj))
+      (doseq [afn [#(apply hash-set %) #(zipmap % %)]]
+        (is (not= aobj (afn a)))
+        (is (not= (afn a) aobj))))))
+
+(deftest Unequal-Sets
+  (doseq [[a b] [[[] [1]] [[1] []] [[1] [2]] [[1 2] [2 1]]]]
+    (let [aobj (apply counted-sorted-set a)]
+      (is (not= aobj b))
+      (is (not= b aobj))
+      (is (not= aobj (zipmap a a)))
+      (is (not= (zipmap a a) aobj)))))
