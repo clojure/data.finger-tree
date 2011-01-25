@@ -301,3 +301,11 @@
       (is (not= b aobj))
       (is (not= aobj (zipmap a a)))
       (is (not= (zipmap a a) aobj)))))
+
+(deftest Meta
+  (doseq [data [[] [3 2 1] (range 50)]
+          ctor [double-list counted-double-list counted-sorted-set]]
+    (let [mdata {:foo :bar}
+          coll (with-meta (apply ctor data) mdata)]
+      (is (= mdata (meta coll)))
+      (is (= coll (with-meta coll nil))))))

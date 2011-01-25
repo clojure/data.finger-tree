@@ -391,61 +391,67 @@
 
 ;;=== applications ===
 
-(deftype DoubleList [tree]
+(deftype DoubleList [tree mdata]
   Object
     (equals [_ x] (seq-equals tree x))
     (hashCode [this] (hash (map identity this)))
+  clojure.lang.IObj
+    (meta [_] mdata)
+    (withMeta [_ mdata] (DoubleList. tree mdata))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
   ISeq
     (first [_] (first tree))
-    (more [_] (DoubleList. (rest tree)))
-    (next [_] (if-let [t (next tree)] (DoubleList. t)))
+    (more [_] (DoubleList. (rest tree) mdata))
+    (next [_] (if-let [t (next tree)] (DoubleList. t mdata)))
   IPersistentStack ; actually, queue
     (peek [_] (peek tree))
-    (pop [_] (DoubleList. (pop tree)))
+    (pop [_] (DoubleList. (pop tree) mdata))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
   IPersistentCollection
     (count [_] (count (seq tree))) ; Slow!
-    (empty [_] (DoubleList. (empty tree)))
+    (empty [_] (DoubleList. (empty tree) mdata))
     (equiv [_ x] (seq-equals tree x))
-    (cons  [_ b] (DoubleList. (conj tree b)))
+    (cons  [_ b] (DoubleList. (conj tree b) mdata))
   ConjL
-    (conjl [_ a] (DoubleList. (conjl tree a)))
+    (conjl [_ a] (DoubleList. (conjl tree a) mdata))
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree))
   Tree
-    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2)))
-    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1))))
+    (app3 [_ ts t2] (DoubleList. (app3 tree ts t2) mdata))
+    (app3deep [_ ts t1] (DoubleList. (app3deep tree ts t1) mdata)))
 
 (defn double-list [& args]
-  (into (DoubleList. (EmptyTree. nil)) args))
+  (into (DoubleList. (EmptyTree. nil) nil) args))
 
-(deftype CountedDoubleList [tree]
+(deftype CountedDoubleList [tree mdata]
   Object
     (equals [_ x] (seq-equals tree x))
     (hashCode [this] (hash (map identity this)))
+  clojure.lang.IObj
+    (meta [_] mdata)
+    (withMeta [_ mdata] (CountedDoubleList. tree mdata))
   Sequential
   Seqable
     (seq [this] (when (seq tree) this))
   ISeq
     (first [_] (first tree))
-    (more [_] (CountedDoubleList. (rest tree)))
-    (next [_] (if-let [t (next tree)] (CountedDoubleList. t)))
+    (more [_] (CountedDoubleList. (rest tree) mdata))
+    (next [_] (if-let [t (next tree)] (CountedDoubleList. t mdata)))
   IPersistentStack
     (peek [_] (peek tree))
-    (pop [_] (CountedDoubleList. (pop tree)))
+    (pop [_] (CountedDoubleList. (pop tree) mdata))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
   IPersistentCollection
-    (empty [_] (CountedDoubleList. (empty tree)))
+    (empty [_] (CountedDoubleList. (empty tree) mdata))
     (equiv [_ x] (seq-equals tree x))
-    (cons  [_ b] (CountedDoubleList. (conj tree b)))
+    (cons  [_ b] (CountedDoubleList. (conj tree b) mdata))
   ConjL
-    (conjl [_ a] (CountedDoubleList. (conjl tree a)))
+    (conjl [_ a] (CountedDoubleList. (conjl tree a) mdata))
   Measured
     (measured [_] (measured tree))
     (getMeter [_] (getMeter tree)) ; not needed?
@@ -455,14 +461,14 @@
         (< n 0) [(empty this) notfound this]
         (< n (count this))
           (let [[pre m post] (split-tree tree #(> % n))]
-            [(CountedDoubleList. pre) m (CountedDoubleList. post)])
+            [(CountedDoubleList. pre mdata) m (CountedDoubleList. post mdata)])
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
       (ft-split-at this n nil))
   Tree
     (app3 [_ ts t2]
-      (CountedDoubleList. (app3 tree ts (.tree ^CountedDoubleList t2))))
-    ;(app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1)))
+      (CountedDoubleList. (app3 tree ts (.tree ^CountedDoubleList t2)) mdata))
+    ;(app3deep [_ ts t1] (CountedDoubleList. (app3deep tree ts t1) mdata))
     (measureMore [_] (measureMore tree))
     (measurePop [_] (measurePop tree))
   Counted
@@ -474,7 +480,7 @@
         (== k (measured tree)) (conj this v)
         (< -1 k (measured tree))
           (let [[pre mid post] (split-tree tree #(> % k))]
-            (CountedDoubleList. (ft-concat (conj pre v) post)))
+            (CountedDoubleList. (ft-concat (conj pre v) post) mdata))
         :else (throw (IndexOutOfBoundsException.))))
     (containsKey [_ k] (< -1 k (measured tree)))
     (entryAt [_ n] (clojure.lang.MapEntry.
@@ -494,7 +500,7 @@
 (let [measure-len (constantly 1)
       len-meter (meter measure-len 0 +)]
   (def empty-counted-double-list
-    (CountedDoubleList. (EmptyTree. len-meter))))
+    (CountedDoubleList. (EmptyTree. len-meter) nil)))
 
 (defn counted-double-list [& args]
   (into empty-counted-double-list args))
@@ -504,7 +510,7 @@
 
 (def ^:private notfound (Object.))
 
-(deftype CountedSortedSet [cmpr tree]
+(deftype CountedSortedSet [cmpr tree mdata]
   Object
     (equals [_ x]
       (boolean
@@ -513,27 +519,30 @@
                (every? #(contains? x %) tree))
           (seq-equals tree x))))
     (hashCode [_] (reduce + (map hash tree)))
+  clojure.lang.IObj
+    (meta [_] mdata)
+    (withMeta [_ mdata] (CountedSortedSet. cmpr tree mdata))
   Seqable
     (seq [this] (when (seq tree) this))
   IPersistentCollection
     (cons [this value]
       (if (empty? tree)
-        (CountedSortedSet. cmpr (conj tree value))
+        (CountedSortedSet. cmpr (conj tree value) mdata)
         (let [[l x r] (split-tree tree #(>= 0 (cmpr value (:right %))))
               compared (cmpr value x)]
           (if (zero? compared)
             this ; already in set
             (let [[a b] (if (>= 0 compared) [value x] [x value])]
-              (CountedSortedSet. cmpr (ft-concat (conj l a) (conjl r b))))))))
-    (empty [_] (CountedSortedSet. cmpr (empty tree)))
+              (CountedSortedSet. cmpr (ft-concat (conj l a) (conjl r b)) mdata))))))
+    (empty [_] (CountedSortedSet. cmpr (empty tree) mdata))
     (equiv [this x] (.equals this x)) ; TBD
   ISeq
     (first [_] (first tree))
-    (more [_] (CountedSortedSet. cmpr (rest tree)))
-    (next [_] (if-let [t (next tree)] (CountedSortedSet. cmpr t)))
+    (more [_] (CountedSortedSet. cmpr (rest tree) mdata))
+    (next [_] (if-let [t (next tree)] (CountedSortedSet. cmpr t mdata)))
   IPersistentStack
     (peek [_] (peek tree))
-    (pop [_] (CountedSortedSet. cmpr (pop tree)))
+    (pop [_] (CountedSortedSet. cmpr (pop tree) mdata))
   Reversible
     (rseq [_] (rseq tree)) ; not 'this' because tree ops can't be reversed
   Measured
@@ -544,8 +553,8 @@
       (cond
         (< n 0) [(empty this) notfound this]
         (< n (count this)) (let [[l x r] (split-tree tree #(> (:len %) n))]
-                             [(CountedSortedSet. cmpr l) x
-                              (CountedSortedSet. cmpr r)])
+                             [(CountedSortedSet. cmpr l mdata) x
+                              (CountedSortedSet. cmpr r mdata)])
         :else [this notfound (empty this)]))
     (ft-split-at [this n]
       (ft-split-at this n nil))
@@ -567,7 +576,7 @@
         this
         (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
           (if (= x k)
-            (CountedSortedSet. cmpr (ft-concat l r))
+            (CountedSortedSet. cmpr (ft-concat l r) mdata)
             this))))
     (get [this k] (.valAt this k nil))
   Indexed
@@ -584,7 +593,7 @@
     (seqFrom [_ k ascending?]
       (let [[l x r] (split-tree tree #(>= 0 (cmpr k (:right %))))]
         (if ascending?
-          (CountedSortedSet. cmpr (conjl r x))
+          (CountedSortedSet. cmpr (conjl r x) mdata)
           (rseq (conj l x)))))
   java.util.Set
     (contains [this x] (not= notfound (get this x notfound)))
@@ -607,9 +616,9 @@
                                           (.len ^Len-Right-Meter %2))
                                        (or (:right %2) (:right %1))))
       empty-tree (EmptyTree. len-lr)
-      default-empty-set (CountedSortedSet. compare empty-tree)]
+      default-empty-set (CountedSortedSet. compare empty-tree nil)]
   (defn counted-sorted-set-by [cmpr & args]
-    (into (CountedSortedSet. cmpr empty-tree) args))
+    (into (CountedSortedSet. cmpr empty-tree nil) args))
   (defn counted-sorted-set [& args]
     (into default-empty-set args)))
 
