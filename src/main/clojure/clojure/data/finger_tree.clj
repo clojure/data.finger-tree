@@ -80,6 +80,7 @@
                           items
                           (range (count items)))
             :else notfound#))
+      Sequential
       ISeq
         (first     [_] ~(first items))
         (more      [_] ~(if (> (count items) 1)
@@ -165,6 +166,7 @@
 (deftype EmptyTree [meter-obj]
   Seqable
     (seq [_] nil)
+  Sequential
   ISeq
     (first [_] nil)
     (more [this] this)
@@ -205,6 +207,7 @@
 (deftype SingleTree [meter-obj x]
   Seqable
     (seq [this] this)
+  Sequential
   ISeq
     (first [_] x)
     (more [_] (EmptyTree. meter-obj))
@@ -242,6 +245,7 @@
 (deftype DelayedTree [tree-ref mval]
   Seqable
     (seq [this] this)
+  Sequential
   ISeq
     (first [_] (first @tree-ref))
     (more [_] (rest @tree-ref))
@@ -312,6 +316,7 @@
 (deftype DeepTree [meter-obj pre mid suf mval]
   Seqable
     (seq [this] this)
+  Sequential
   ISeq
     (first [_] (first pre))
     (more [_] (deep-left (rest pre) mid suf))
@@ -523,7 +528,8 @@
     (meta [_] mdata)
     (withMeta [_ mdata] (CountedSortedSet. cmpr tree mdata))
   Seqable
-    (seq [this] (when (seq tree) this))
+    ; return 'tree' instead of 'this' so that result will be Sequential
+    (seq [this] (when (seq tree) tree))
   IPersistentCollection
     (cons [this value]
       (if (empty? tree)
