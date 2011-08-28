@@ -1,6 +1,6 @@
 # Finger Trees
 
-Finger trees are a versitle family of persistent collections.  This library includes everything you need to make your own, as well a few ready-to-use collection types:
+Finger trees are a versatile family of persistent collections.  This library includes everything you need to make your own, as well a few ready-to-use collection types:
 
 - **double-list** is a sequential collection that provides constant-time access to both the left and right ends.
 
@@ -32,7 +32,7 @@ You'll need git and maven, then execute the following at a shell prompt to fetch
 
 ## use/require
 
-Regardless of how you fetch the dependency, to you a finger-tree
+Regardless of how you fetch the dependency, to use a finger-tree
 function in your project you'll need to add something like this to
 your `ns` declaration:
 
