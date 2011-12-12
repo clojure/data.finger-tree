@@ -2,7 +2,7 @@
  ({:source-url
    "https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
-   "http://clojure.github.com/data.finger-tree/finger-tree-api.html",
+   "http://clojure.github.com/data.finger-tree/clojure.data.finger-tree-api.html",
    :name "clojure.data.finger-tree",
    :author "Chris Houser",
    :doc "Persistent collections based on 2-3 finger trees."}),
@@ -13,7 +13,7 @@
    :source-url
    "https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L33",
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/ObjMeter",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/ObjMeter",
    :namespace "clojure.data.finger-tree",
    :line 33,
    :var-type "var",
@@ -24,7 +24,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/app3",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/app3",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([t1 ts t2]),
@@ -34,7 +34,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/app3deep",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/app3deep",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([t2 ts t1]),
@@ -44,7 +44,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/conjl",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/conjl",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([s a]),
@@ -54,7 +54,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/ft-split-at",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/ft-split-at",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o k notfound] [o k]),
@@ -64,7 +64,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/getMeter",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/getMeter",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o]),
@@ -74,7 +74,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/idElem",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/idElem",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([_]),
@@ -84,7 +84,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/measure",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/measure",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([_ o]),
@@ -94,7 +94,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/measureMore",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/measureMore",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o]),
@@ -104,7 +104,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/measurePop",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/measurePop",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o]),
@@ -114,7 +114,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/measured",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/measured",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o]),
@@ -124,7 +124,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/opfn",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/opfn",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([_]),
@@ -135,7 +135,7 @@
    :raw-source-url nil,
    :source-url nil,
    :wiki-url
-   "http://clojure.github.com/data.finger-tree//finger-tree-api.html#clojure.data.finger-tree/split",
+   "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/split",
    :namespace "clojure.data.finger-tree",
    :var-type "function",
    :arglists ([o pred acc]),
