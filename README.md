@@ -1,6 +1,6 @@
 # Finger Trees
 
-Finger trees are a versatile family of persistent collections.  This library includes everything you need to make your own, as well a few ready-to-use collection types:
+Finger trees are a versatile family of fully persistent collections.  This library includes everything you need to make your own, as well a few ready-to-use collection types:
 
 - **double-list** is a sequential collection that provides constant-time access to both the left and right ends.
 
