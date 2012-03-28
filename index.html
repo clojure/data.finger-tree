@@ -1,0 +1,475 @@
+<html>
+  <head>
+    <title>clojure.data.finger-tree - Finger trees 0.0.2 API documentation</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">data.finger-tree API Reference</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <span class="toc-header"><span id="project-name">Finger trees</span> <span id="version">0.0.2</span> API</span><br />
+    <ul>
+      <li><a class="wiki_link" href="index.html">Overview</a></li>
+      <li><a class="wiki_link" href="api-index.html">API Index</a></li>
+    </ul>
+    
+    
+    <a href="http://clojure.org" class="wiki_link">Clojure Home</a>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#toc0" style="margin-top: 3px;">Overview</a>
+    
+  </div><div style="margin-left: 1em;" class="toc-section">
+    <a href="#proto-section" style="margin-top: 3px;">Protocols</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/ConjL">ConjL</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/conjl">conjl</a>
+      </div>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Measured">Measured</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/getMeter">getMeter</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measured">measured</a>
+      </div>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/ObjMeter">ObjMeter</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/idElem">idElem</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measure">measure</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/opfn">opfn</a>
+      </div>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/SplitAt">SplitAt</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/ft-split-at">ft-split-at</a>
+      </div>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Splittable">Splittable</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/split">split</a>
+      </div>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Tree">Tree</a>
+      <div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/app3">app3</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/app3deep">app3deep</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measureMore">measureMore</a>
+      </div><div style="margin-left: 1em;" class="toc-subentry">
+        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measurePop">measurePop</a>
+      </div>
+    </div>
+  </div><div style="margin-left: 1em;" class="toc-section">
+    <a href="#type-section" style="margin-top: 3px;">Types</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/CountedSortedSet">CountedSortedSet</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DeepTree">DeepTree</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit1">Digit1</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit2">Digit2</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit3">Digit3</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit4">Digit4</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DoubleList">DoubleList</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/EmptyTree">EmptyTree</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Len-Right-Meter">Len-Right-Meter</a>
+      
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/SingleTree">SingleTree</a>
+      
+    </div>
+  </div><div style="margin-left: 1em;" class="toc-section">
+    <a href="#" style="margin-top: 3px;"></a>
+    
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="clojure.data.finger-tree">clojure.data.finger-tree</span>
+  - <span id="header-project">Finger trees</span> <span id="header-version">0.0.2</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  </h1>
+<span id="author-line">by <span id="author-name">Chris Houser</span><br /></span>
+<br />Full namespace name: <span id="long-name">clojure.data.finger-tree</span>
+<p></p>
+<h2>Overview</h2>
+<pre id="namespace-docstr">Persistent collections based on 2-3 finger trees.</pre>
+
+
+<br />
+
+<div id="proto-section">
+  <p></p>
+  <h2>Protocols</h2>
+  <div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/ConjL">ConjL</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr"></pre>
+    Known implementations: <span id="proto-impls"><a href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>, <a href="#clojure.data.finger-tree/DeepTree">DeepTree</a>, <a href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>, <a href="#clojure.data.finger-tree/Digit1">Digit1</a>, <a href="#clojure.data.finger-tree/Digit2">Digit2</a>, <a href="#clojure.data.finger-tree/Digit3">Digit3</a>, <a href="#clojure.data.finger-tree/Digit4">Digit4</a>, <a href="#clojure.data.finger-tree/DoubleList">DoubleList</a>, <a href="#clojure.data.finger-tree/EmptyTree">EmptyTree</a>, <a href="#clojure.data.finger-tree/SingleTree">SingleTree</a></span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/conjl">conjl</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (conjl s a)
+</pre>
+      <pre id="var-docstr">Append a to the left-hand side of s</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L30" id="proto-source">Source</a>
+  </div><div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Measured">Measured</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr"></pre>
+    Known implementations: <span id="proto-impls"><a href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>, <a href="#clojure.data.finger-tree/CountedSortedSet">CountedSortedSet</a>, <a href="#clojure.data.finger-tree/DeepTree">DeepTree</a>, <a href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>, <a href="#clojure.data.finger-tree/Digit1">Digit1</a>, <a href="#clojure.data.finger-tree/Digit2">Digit2</a>, <a href="#clojure.data.finger-tree/Digit3">Digit3</a>, <a href="#clojure.data.finger-tree/Digit4">Digit4</a>, <a href="#clojure.data.finger-tree/DoubleList">DoubleList</a>, <a href="#clojure.data.finger-tree/EmptyTree">EmptyTree</a>, nil, <a href="#clojure.data.finger-tree/SingleTree">SingleTree</a></span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/getMeter">getMeter</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (getMeter o)
+</pre>
+      <pre id="var-docstr">Return the meter object for o</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/measured">measured</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (measured o)
+</pre>
+      <pre id="var-docstr">Return the measured value of o</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L39" id="proto-source">Source</a>
+  </div><div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/ObjMeter">ObjMeter</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr">Object for annotating tree elements.  idElem and op together form a Monoid.</pre>
+    Known implementations: <span id="proto-impls">nil</span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/idElem">idElem</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (idElem _)
+</pre>
+      <pre id="var-docstr">Return the identity element for this meter</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/measure">measure</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (measure _ o)
+</pre>
+      <pre id="var-docstr">Return the measured value of o (same type as idElem)</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/opfn">opfn</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (opfn _)
+</pre>
+      <pre id="var-docstr">Return an associative function of two args for combining measures</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L33" id="proto-source">Source</a>
+  </div><div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/SplitAt">SplitAt</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr"></pre>
+    Known implementations: <span id="proto-impls"><a href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>, <a href="#clojure.data.finger-tree/CountedSortedSet">CountedSortedSet</a></span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/ft-split-at">ft-split-at</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (ft-split-at o k notfound)
+       (ft-split-at o k)
+</pre>
+      <pre id="var-docstr">Return [pre m post] where pre and post are trees</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L46" id="proto-source">Source</a>
+  </div><div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Splittable">Splittable</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr"></pre>
+    Known implementations: <span id="proto-impls"><a href="#clojure.data.finger-tree/DeepTree">DeepTree</a>, <a href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>, <a href="#clojure.data.finger-tree/Digit1">Digit1</a>, <a href="#clojure.data.finger-tree/Digit2">Digit2</a>, <a href="#clojure.data.finger-tree/Digit3">Digit3</a>, <a href="#clojure.data.finger-tree/Digit4">Digit4</a>, <a href="#clojure.data.finger-tree/SingleTree">SingleTree</a></span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/split">split</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (split o pred acc)
+</pre>
+      <pre id="var-docstr">Return [pre m post] where pre and post are trees</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L43" id="proto-source">Source</a>
+  </div><div id="proto-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Tree">Tree</h2>
+    <span id="proto-type">Protocol</span><br />
+    <pre id="proto-docstr"></pre>
+    Known implementations: <span id="proto-impls"><a href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>, <a href="#clojure.data.finger-tree/DeepTree">DeepTree</a>, <a href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>, <a href="#clojure.data.finger-tree/DoubleList">DoubleList</a>, <a href="#clojure.data.finger-tree/EmptyTree">EmptyTree</a>, <a href="#clojure.data.finger-tree/SingleTree">SingleTree</a></span>
+    <div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/app3">app3</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (app3 t1 ts t2)
+</pre>
+      <pre id="var-docstr">Append ts and (possibly deep) t2 to tree t1</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/app3deep">app3deep</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (app3deep t2 ts t1)
+</pre>
+      <pre id="var-docstr">Append ts and t2 to deep tree t1</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/measureMore">measureMore</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (measureMore o)
+</pre>
+      <pre id="var-docstr">Return the measure of o not including the leftmost item</pre>
+      
+      
+      
+    </div><div id="proto-var-entry">
+      <br />
+      <h3 id="clojure.data.finger-tree/measurePop">measurePop</h3>
+      <span id="var-type">function</span><br />
+      <pre id="var-usage">Usage: (measurePop o)
+</pre>
+      <pre id="var-docstr">Return the measure of o not including the rightmost item</pre>
+      
+      
+      
+    </div>
+    
+    
+    <a href="https://github.com/clojure/data.finger-tree/blob/f798322d5ee1ccb5801322e99caf9a5541a8e3b4/src/main/clojure/clojure/data/finger_tree.clj#L50" id="proto-source">Source</a>
+  </div>
+</div>
+<div id="type-section">
+  <p></p>
+  <h2>Types</h2>
+  <div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[tree mdata]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/SplitAt">SplitAt</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.Associative, clojure.lang.Counted, clojure.lang.IObj, clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/CountedSortedSet">CountedSortedSet</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[cmpr tree mdata]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/SplitAt">SplitAt</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.Counted, clojure.lang.ILookup, clojure.lang.IObj, clojure.lang.IPersistentCollection, clojure.lang.IPersistentSet, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sorted, java.util.Set</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/DeepTree">DeepTree</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[meter-obj pre mid suf mval]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/DelayedTree">DelayedTree</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[tree-ref mval]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Digit1">Digit1</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[a meter-obj measure-ref]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Digit2">Digit2</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[a b meter-obj measure-ref]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Digit3">Digit3</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[a b c meter-obj measure-ref]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Digit4">Digit4</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[a b c d meter-obj measure-ref]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Indexed, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/DoubleList">DoubleList</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[tree mdata]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IObj, clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/EmptyTree">EmptyTree</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[meter-obj]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/Len-Right-Meter">Len-Right-Meter</h2>
+    <span id="type-type">record</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[len right]</span><br />
+    Protocols: <span id="type-protocols"></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IKeywordLookup, clojure.lang.ILookup, clojure.lang.IObj, clojure.lang.IPersistentMap, java.io.Serializable, java.util.Map</span><br />
+  </div><div id="type-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.data.finger-tree/SingleTree">SingleTree</h2>
+    <span id="type-type">type</span><br />
+    <pre id="type-docstr"></pre>
+    Fields: <span id="type-fields">[meter-obj x]</span><br />
+    Protocols: <span id="type-protocols"><a href="#clojure.data.finger-tree/ConjL">ConjL</a>, <a href="#clojure.data.finger-tree/Measured">Measured</a>, <a href="#clojure.data.finger-tree/Splittable">Splittable</a>, <a href="#clojure.data.finger-tree/Tree">Tree</a></span><br />
+    Interfaces: <span id="type-interfaces">clojure.lang.IPersistentCollection, clojure.lang.IPersistentStack, clojure.lang.ISeq, clojure.lang.Reversible, clojure.lang.Seqable, clojure.lang.Sequential</span><br />
+  </div>
+</div>
+
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">Copyright 2007-2012 by Rich Hickey and the various contributors</div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>
