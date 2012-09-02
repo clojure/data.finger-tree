@@ -40,12 +40,12 @@ your `ns` declaration:
 
 # Talk
 
-Thanks to heroku for hosting the [slides for my Clojure Conj talk][1] about this library.  The rather raw sources and enormous PDF of the slides are at [github][2].
+Thanks to heroku for hosting the [slides for my Clojure Conj talk][1] about this library.  The rather raw sources and enormous PDF of the slides are at [github][2].  Video available at [blip.tv][3]
 
 # Examples
 
 The finger-tree lib actually includes several collections built on top
-of [Ralf Hinze and Ross Paterson's finger trees][3].  Here are some
+of [Ralf Hinze and Ross Paterson's finger trees][4].  Here are some
 examples of each of them:
 
 ## double-list
@@ -143,4 +143,5 @@ This is like counted-double-list, but does not support `conjl`.  Instead, `conj`
 
 [1]: http://talk-finger-tree.heroku.com/
 [2]: http://github.com/Chouser/talk-finger-tree
-[3]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
+[3]: http://blip.tv/clojure/chris-houser-finger-trees-custom-persistent-collections-4632874
+[4]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.html
