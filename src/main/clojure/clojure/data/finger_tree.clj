@@ -95,7 +95,7 @@
                           `(newEmptyTree ~'meter-obj)))
       IPersistentCollection
         (empty [_]) ; TBD ; not needed?
-        (equiv [_ x] false) ; TBD
+        (equiv [_ x#] false) ; TBD
         (cons  [_ x#] (digit ~'meter-obj ~@items x#))
       ConjL
         (conjl [_ x#] (digit ~'meter-obj x# ~@items))
