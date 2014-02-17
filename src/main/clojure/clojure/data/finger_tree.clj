@@ -11,7 +11,7 @@
   clojure.data.finger-tree
   (:import (clojure.lang Seqable Sequential ISeq IPersistentSet ILookup
                          IPersistentStack IPersistentCollection Associative
-                         Sorted Reversible Indexed Counted)))
+                         Sorted Reversible Indexed Counted IHashEq)))
 
 (comment ; TODO:
 
@@ -396,10 +396,44 @@
 
 ;;=== applications ===
 
+(defmacro compile-if [test then else]
+  (if (eval test)
+    then
+    else))
+
+(defn hashcode [x]
+  (clojure.lang.Util/hash x))
+
+(defn hash-ordered [coll]
+  (compile-if (resolve 'clojure.core/hash-ordered-coll)
+    (hash-ordered-coll coll)
+    (loop [h (int 1), xs coll]
+      (if-let [xs (seq xs)]
+        (recur (unchecked-add-int (unchecked-multiply-int (int 31) h)
+                                  (clojure.lang.Util/hasheq (first xs)))
+               (next xs))
+        h))))
+
+(defn hash-unordered [coll]
+  (compile-if (resolve 'clojure.core/hash-unordered-coll)
+    (hash-unordered-coll coll)
+    (loop [h (int 0), xs coll]
+      (if-let [xs (seq xs)]
+        (recur (unchecked-add-int h
+                                  (clojure.lang.Util/hasheq (first xs)))
+               (next xs))
+        h))))
+
 (deftype DoubleList [tree mdata]
   Object
     (equals [_ x] (seq-equals tree x))
-    (hashCode [this] (hash (map identity this)))
+    (hashCode [this] (hashcode (map identity this)))
+  IHashEq
+    (hasheq [this]
+      (hash-ordered this))
+  java.lang.Iterable
+    (iterator [this]
+      (clojure.lang.SeqIterator. (seq this)))
   clojure.lang.IObj
     (meta [_] mdata)
     (withMeta [_ mdata] (DoubleList. tree mdata))
@@ -435,7 +469,13 @@
 (deftype CountedDoubleList [tree mdata]
   Object
     (equals [_ x] (seq-equals tree x))
-    (hashCode [this] (hash (map identity this)))
+    (hashCode [this] (hashcode (map identity this)))
+  IHashEq
+    (hasheq [this]
+      (hash-ordered this))
+  java.lang.Iterable
+    (iterator [this]
+      (clojure.lang.SeqIterator. (seq this)))
   clojure.lang.IObj
     (meta [_] mdata)
     (withMeta [_ mdata] (CountedDoubleList. tree mdata))
@@ -523,7 +563,10 @@
           (and (= (count x) (count tree)) 
                (every? #(contains? x %) tree))
           (seq-equals tree x))))
-    (hashCode [_] (reduce + (map hash tree)))
+    (hashCode [_] (reduce + (map hashcode tree)))
+  IHashEq
+    (hasheq [this]
+      (hash-unordered this))
   clojure.lang.IObj
     (meta [_] mdata)
     (withMeta [_ mdata] (CountedSortedSet. cmpr tree mdata))

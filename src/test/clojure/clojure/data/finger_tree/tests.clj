@@ -13,7 +13,8 @@
         [clojure.data.finger-tree
          :only [finger-tree meter conjl ft-concat ft-split-at split-tree
                 opfn idElem measure measured to-tree getMeter
-                double-list counted-double-list counted-sorted-set]])
+                double-list counted-double-list counted-sorted-set
+                counted-sorted-set-by]])
   (:import (clojure.data.finger_tree CountedSortedSet CountedDoubleList)))
 
 (deftest Conj-Seq-Queue
@@ -309,3 +310,48 @@
           coll (with-meta (apply ctor data) mdata)]
       (is (= mdata (meta coll)))
       (is (= coll (with-meta coll nil))))))
+
+(defn is-same-coll [a b]
+  (let [msg (format "(class a)=%s (class b)=%s (count a)=%s (count b)=%s a=%s b=%s (seq a)=%s (seq b)=%s"
+                    (.getName (class a)) (.getName (class b))
+                    (count a) (count b)
+                    a b
+                    (seq a) (seq b))]
+    (is (= (count a) (count b)) msg)
+    (is (= a b) msg)
+    (is (= b a) msg)
+    (is (.equals ^Object a b) msg)
+    (is (.equals ^Object b a) msg)
+    (is (= (hash a) (hash b)) msg)
+    (is (= (.hashCode ^Object a) (.hashCode ^Object b)) msg)))
+
+(deftest sanity-checks
+  (let [colls [ [(int -2) 4 5 6 7]
+                (double-list (int -2) 4 5 6 7)
+                (counted-double-list (int -2) 4 5 6 7) ]]
+    (doseq [e1 colls, e2 colls]
+      (is-same-coll e1 e2)))
+  (let [colls [ []
+                (double-list)
+                (counted-double-list)
+                (empty [(int -2) 4 5 6 7])
+                (empty (double-list (int -2) 4 5 6 7))
+                (empty (counted-double-list (int -2) 4 5 6 7)) ]]
+    (doseq [e1 colls, e2 colls]
+      (is-same-coll e1 e2)))
+  (let [colls [ (sorted-set)
+                (sorted-set-by >)
+                (counted-sorted-set)
+                (counted-sorted-set-by (comparator >))
+                (empty (sorted-set (int -2) 4 5 6 7))
+                (empty (sorted-set-by > (int -2) 4 5 6 7))
+                (empty (counted-sorted-set (int -2) 4 5 6 7))
+                (empty (counted-sorted-set-by (comparator >) (int -2) 4 5 6 7)) ]]
+    (doseq [e1 colls, e2 colls]
+      (is-same-coll e1 e2)))
+  (let [colls [ (sorted-set (int -2) 4 5 6 7)
+                (sorted-set-by > (int -2) 4 5 6 7)
+                (counted-sorted-set (int -2) 4 5 6 7)
+                (counted-sorted-set-by (comparator >) (int -2) 4 5 6 7) ]]
+    (doseq [e1 colls, e2 colls]
+      (is-same-coll e1 e2))))
