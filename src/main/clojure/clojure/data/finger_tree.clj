@@ -608,8 +608,10 @@
     (iterator [_]
       (let [t (atom tree)]
         (reify java.util.Iterator
-          (next [_] (first (swap! t next))) 
-          (hasNext [_] (boolean (next @t))))))
+          (next [_] (let [f (first @t)]
+                      (swap! t next)
+                      f))
+          (hasNext [_] (boolean (first @t))))))
     (size [this] (count this))
     (toArray [_] nil) ; TBD
     (toArray [_ a] nil)) ; TBD
