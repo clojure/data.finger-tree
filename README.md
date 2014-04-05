@@ -16,7 +16,7 @@ There are examples of all these later in the README.
 
 If you use leiningen or cake, add this to the `:dependencies` in your `project.clj`:
 
-    [org.clojure/data.finger-tree "0.0.1"]
+    [org.clojure/data.finger-tree "0.0.2"]
 
 ## pom.xml
 
@@ -25,7 +25,7 @@ If you use maven, add this to the `<dependencies>` in your `pom.xml`:
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.finger-tree</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2</version>
     </dependency>
 
 You'll need git and maven, then execute the following at a shell prompt to fetch finger trees and all its dependencies (including a recent snapshot of Clojure itself) and start a REPL:
