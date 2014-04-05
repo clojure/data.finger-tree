@@ -1,6 +1,6 @@
 {:namespaces
  ({:source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree/clojure.data.finger-tree-api.html",
    :name "clojure.data.finger-tree",
@@ -11,37 +11,37 @@
    :name "->CountedDoubleList",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L435",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L469",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->CountedDoubleList",
    :doc
    "Positional factory function for class clojure.data.finger_tree.CountedDoubleList.",
    :var-type "function",
-   :line 435,
+   :line 469,
    :file "src/main/clojure/clojure/data/finger_tree.clj"}
   {:arglists ([cmpr tree mdata]),
    :name "->CountedSortedSet",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L518",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L558",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->CountedSortedSet",
    :doc
    "Positional factory function for class clojure.data.finger_tree.CountedSortedSet.",
    :var-type "function",
-   :line 518,
+   :line 558,
    :file "src/main/clojure/clojure/data/finger_tree.clj"}
   {:arglists ([meter-obj pre mid suf mval]),
    :name "->DeepTree",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L316",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L316",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->DeepTree",
    :doc
@@ -53,9 +53,9 @@
    :name "->DelayedTree",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L245",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L245",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->DelayedTree",
    :doc
@@ -67,9 +67,9 @@
    :name "->Digit1",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L138",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L138",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->Digit1",
    :doc
@@ -81,9 +81,9 @@
    :name "->Digit2",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L139",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L139",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->Digit2",
    :doc
@@ -95,9 +95,9 @@
    :name "->Digit3",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L140",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L140",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->Digit3",
    :doc
@@ -109,9 +109,9 @@
    :name "->Digit4",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L141",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L141",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->Digit4",
    :doc
@@ -123,23 +123,23 @@
    :name "->DoubleList",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L399",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L427",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->DoubleList",
    :doc
    "Positional factory function for class clojure.data.finger_tree.DoubleList.",
    :var-type "function",
-   :line 399,
+   :line 427,
    :file "src/main/clojure/clojure/data/finger_tree.clj"}
   {:arglists ([meter-obj]),
    :name "->EmptyTree",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L166",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L166",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->EmptyTree",
    :doc
@@ -151,23 +151,23 @@
    :name "->Len-Right-Meter",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L514",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->Len-Right-Meter",
    :doc
    "Positional factory function for class clojure.data.finger_tree.Len-Right-Meter.",
    :var-type "function",
-   :line 514,
+   :line 554,
    :file "src/main/clojure/clojure/data/finger_tree.clj"}
   {:arglists ([meter-obj x]),
    :name "->SingleTree",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L207",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L207",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/->SingleTree",
    :doc
@@ -179,15 +179,15 @@
    :name "map->Len-Right-Meter",
    :namespace "clojure.data.finger-tree",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L514",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/map->Len-Right-Meter",
    :doc
    "Factory function for class clojure.data.finger_tree.Len-Right-Meter, taking a map of keywords to field values.",
    :var-type "function",
-   :line 514,
+   :line 554,
    :file "src/main/clojure/clojure/data/finger_tree.clj"}
   {:file nil,
    :raw-source-url nil,
@@ -287,9 +287,9 @@
    :name "SingleTree"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L30",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L30",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/ConjL",
    :namespace "clojure.data.finger-tree",
@@ -299,9 +299,9 @@
    :name "ConjL"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L39",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L39",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/Measured",
    :namespace "clojure.data.finger-tree",
@@ -311,9 +311,9 @@
    :name "Measured"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L33",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L33",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/ObjMeter",
    :namespace "clojure.data.finger-tree",
@@ -324,9 +324,9 @@
    :name "ObjMeter"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L46",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L46",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/SplitAt",
    :namespace "clojure.data.finger-tree",
@@ -336,9 +336,9 @@
    :name "SplitAt"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L43",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L43",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/Splittable",
    :namespace "clojure.data.finger-tree",
@@ -348,9 +348,9 @@
    :name "Splittable"}
   {:file "src/main/clojure/clojure/data/finger_tree.clj",
    :raw-source-url
-   "https://github.com/clojure/data.finger-tree/raw/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj",
+   "https://github.com/clojure/data.finger-tree/raw/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj",
    :source-url
-   "https://github.com/clojure/data.finger-tree/blob/eccb3c416e75d61b5cb07f92b7d3dd3047da1833/src/main/clojure/clojure/data/finger_tree.clj#L50",
+   "https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L50",
    :wiki-url
    "http://clojure.github.com/data.finger-tree//clojure.data.finger-tree-api.html#clojure.data.finger-tree/Tree",
    :namespace "clojure.data.finger-tree",
