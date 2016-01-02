@@ -1,12 +1,12 @@
 <html>
   <head>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>clojure.data.finger-tree - Finger trees 0.0.3 API documentation</title>
-    <link href="static/favicon.png" rel="icon" />
-    <link href="static/favicon.png" rel="shortcut icon" />
-    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
-    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
-    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <link rel="icon" href="static/favicon.png" />
+    <link rel="shortcut icon" href="static/favicon.png" />
+    <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="static/wiki.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="static/internal.css" type="text/css" media="all" />
     <style>.menuWrapper{height: 36px;}</style>
   </head>
 <!--
@@ -19,156 +19,156 @@ namespace.
   <body>
     <div id="AllContentContainer">
       <div id="Header">
-	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
-	<h1><a title="page header title" id="page-header" href="index.html">data.finger-tree API Reference</a></h1>
+	<a href="index.html" id="Logo"><img src="static/clojure-icon.gif" width="100" height="100" alt="Clojure" /></a>
+	<h1><a href="index.html" id="page-header" title="page header title">data.finger-tree API Reference</a></h1>
       </div>
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
     <span class="toc-header"><span id="project-name">Finger trees</span> <span id="version">0.0.3</span> API</span><br />
     <ul>
-      <li><a class="wiki_link" href="index.html">Overview</a></li>
-      <li><a class="wiki_link" href="api-index.html">API Index</a></li>
+      <li><a href="index.html" class="wiki_link">Overview</a></li>
+      <li><a href="api-index.html" class="wiki_link">API Index</a></li>
     </ul>
     
     
-    <a href="http://clojure.org" class="wiki_link">Clojure Home</a>
+    <a class="wiki_link" href="http://clojure.org">Clojure Home</a>
   </div>
 </div>
 </div>
       <div id="rightcolumn">
 	<div id="Content">
 	  <div class="contentBox"><div class="innerContentBox">
-              <div id="content_view" class="wiki wikiPage">
+              <div class="wiki wikiPage" id="content_view">
                 <div id="right-sidebar"><div id="toc">
   <h1 class="nopad">Table of Contents</h1>
-  <div style="margin-left: 1em;" class="toc-section">
-    <a href="#toc0" style="margin-top: 3px;">Overview</a>
+  <div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#toc0">Overview</a>
     
-  </div><div style="margin-left: 1em;" class="toc-section">
-    <a href="#proto-section" style="margin-top: 3px;">Protocols</a>
-    <div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/ConjL">ConjL</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/conjl">conjl</a>
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#proto-section">Protocols</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/ConjL" class="toc-entry-anchor">ConjL</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/conjl" class="toc-subentry-anchor">conjl</a>
       </div>
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Measured">Measured</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/getMeter">getMeter</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measured">measured</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Measured" class="toc-entry-anchor">Measured</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/getMeter" class="toc-subentry-anchor">getMeter</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/measured" class="toc-subentry-anchor">measured</a>
       </div>
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/ObjMeter">ObjMeter</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/idElem">idElem</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measure">measure</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/opfn">opfn</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/ObjMeter" class="toc-entry-anchor">ObjMeter</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/idElem" class="toc-subentry-anchor">idElem</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/measure" class="toc-subentry-anchor">measure</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/opfn" class="toc-subentry-anchor">opfn</a>
       </div>
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/SplitAt">SplitAt</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/ft-split-at">ft-split-at</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/SplitAt" class="toc-entry-anchor">SplitAt</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/ft-split-at" class="toc-subentry-anchor">ft-split-at</a>
       </div>
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Splittable">Splittable</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/split">split</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Splittable" class="toc-entry-anchor">Splittable</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/split" class="toc-subentry-anchor">split</a>
       </div>
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Tree">Tree</a>
-      <div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/app3">app3</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/app3deep">app3deep</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measureMore">measureMore</a>
-      </div><div style="margin-left: 1em;" class="toc-subentry">
-        <a class="toc-subentry-anchor" href="#clojure.data.finger-tree/measurePop">measurePop</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Tree" class="toc-entry-anchor">Tree</a>
+      <div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/app3" class="toc-subentry-anchor">app3</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/app3deep" class="toc-subentry-anchor">app3deep</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/measureMore" class="toc-subentry-anchor">measureMore</a>
+      </div><div class="toc-subentry" style="margin-left: 1em;">
+        <a href="#clojure.data.finger-tree/measurePop" class="toc-subentry-anchor">measurePop</a>
       </div>
     </div>
-  </div><div style="margin-left: 1em;" class="toc-section">
-    <a href="#type-section" style="margin-top: 3px;">Types</a>
-    <div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/CountedDoubleList">CountedDoubleList</a>
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#type-section">Types</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/CountedDoubleList" class="toc-entry-anchor">CountedDoubleList</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/CountedSortedSet">CountedSortedSet</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/CountedSortedSet" class="toc-entry-anchor">CountedSortedSet</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DeepTree">DeepTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/DeepTree" class="toc-entry-anchor">DeepTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DelayedTree">DelayedTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/DelayedTree" class="toc-entry-anchor">DelayedTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit1">Digit1</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Digit1" class="toc-entry-anchor">Digit1</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit2">Digit2</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Digit2" class="toc-entry-anchor">Digit2</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit3">Digit3</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Digit3" class="toc-entry-anchor">Digit3</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Digit4">Digit4</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Digit4" class="toc-entry-anchor">Digit4</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/DoubleList">DoubleList</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/DoubleList" class="toc-entry-anchor">DoubleList</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/EmptyTree">EmptyTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/EmptyTree" class="toc-entry-anchor">EmptyTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/Len-Right-Meter">Len-Right-Meter</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/Len-Right-Meter" class="toc-entry-anchor">Len-Right-Meter</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/SingleTree">SingleTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/SingleTree" class="toc-entry-anchor">SingleTree</a>
       
     </div>
-  </div><div style="margin-left: 1em;" class="toc-section">
-    <a href="#var-section" style="margin-top: 3px;">Vars and Functions</a>
-    <div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;CountedDoubleList">-&gt;CountedDoubleList</a>
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#var-section">Vars and Functions</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;CountedDoubleList" class="toc-entry-anchor">-&gt;CountedDoubleList</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;CountedSortedSet">-&gt;CountedSortedSet</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;CountedSortedSet" class="toc-entry-anchor">-&gt;CountedSortedSet</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;DeepTree">-&gt;DeepTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;DeepTree" class="toc-entry-anchor">-&gt;DeepTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;DelayedTree">-&gt;DelayedTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;DelayedTree" class="toc-entry-anchor">-&gt;DelayedTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;Digit1">-&gt;Digit1</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;Digit1" class="toc-entry-anchor">-&gt;Digit1</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;Digit2">-&gt;Digit2</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;Digit2" class="toc-entry-anchor">-&gt;Digit2</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;Digit3">-&gt;Digit3</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;Digit3" class="toc-entry-anchor">-&gt;Digit3</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;Digit4">-&gt;Digit4</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;Digit4" class="toc-entry-anchor">-&gt;Digit4</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;DoubleList">-&gt;DoubleList</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;DoubleList" class="toc-entry-anchor">-&gt;DoubleList</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;EmptyTree">-&gt;EmptyTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;EmptyTree" class="toc-entry-anchor">-&gt;EmptyTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;Len-Right-Meter">-&gt;Len-Right-Meter</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;Len-Right-Meter" class="toc-entry-anchor">-&gt;Len-Right-Meter</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/-&gt;SingleTree">-&gt;SingleTree</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/-&gt;SingleTree" class="toc-entry-anchor">-&gt;SingleTree</a>
       
-    </div><div style="margin-left: 1em;" class="toc-entry">
-      <a class="toc-entry-anchor" href="#clojure.data.finger-tree/map-&gt;Len-Right-Meter">map-&gt;Len-Right-Meter</a>
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.data.finger-tree/map-&gt;Len-Right-Meter" class="toc-entry-anchor">map-&gt;Len-Right-Meter</a>
       
     </div>
   </div>
@@ -210,7 +210,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L30" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L30">Source</a>
   </div><div id="proto-entry">
     <br />
     <hr />
@@ -241,7 +241,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L39" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L39">Source</a>
   </div><div id="proto-entry">
     <br />
     <hr />
@@ -282,7 +282,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L33" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L33">Source</a>
   </div><div id="proto-entry">
     <br />
     <hr />
@@ -304,7 +304,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L46" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L46">Source</a>
   </div><div id="proto-entry">
     <br />
     <hr />
@@ -325,7 +325,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L43" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L43">Source</a>
   </div><div id="proto-entry">
     <br />
     <hr />
@@ -376,7 +376,7 @@ namespace.
     </div>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L50" id="proto-source">Source</a>
+    <a id="proto-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L50">Source</a>
   </div>
 </div>
 <div id="type-section">
@@ -505,7 +505,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.CountedDoubleList.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L469" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L469">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -516,7 +516,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.CountedSortedSet.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L558" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L558">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -527,7 +527,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.DeepTree.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L316" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L316">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -538,7 +538,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.DelayedTree.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L245" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L245">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -549,7 +549,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.Digit1.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L138" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L138">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -560,7 +560,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.Digit2.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L139" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L139">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -571,7 +571,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.Digit3.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L140" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L140">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -582,7 +582,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.Digit4.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L141" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L141">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -593,7 +593,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.DoubleList.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L427" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L427">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -604,7 +604,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.EmptyTree.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L166" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L166">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -615,7 +615,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.Len-Right-Meter.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -626,7 +626,7 @@ namespace.
     <pre id="var-docstr">Positional factory function for class clojure.data.finger_tree.SingleTree.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L207" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L207">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -637,7 +637,7 @@ namespace.
     <pre id="var-docstr">Factory function for class clojure.data.finger_tree.Len-Right-Meter, taking a map of keywords to field values.</pre>
     
     
-    <a href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554" id="var-source">Source</a>
+    <a id="var-source" href="https://github.com/clojure/data.finger-tree/blob/21d2438bc601e33f66037d1a375576939220df6c/src/main/clojure/clojure/data/finger_tree.clj#L554">Source</a>
   </div>
 </div>
 
@@ -648,10 +648,10 @@ namespace.
           </div>
 	</div>
 	<div id="foot">
-	  <div style="text-align: center;" id="copyright">Copyright 2007-2014 by Rich Hickey and the various contributors</div>
+	  <div id="copyright" style="text-align: center;">Copyright 2007-2015 by Rich Hickey and the various contributors</div>
 	</div>
       </div>
-      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      <div id="DesignedBy">Logo &amp; site design by <a href="http://www.tomhickey.com" title="Visit Tom Hickey's website.">Tom Hickey</a>.<br />
       Clojure auto-documentation system by Tom Faulhaber.</div>
     </div>
     <!-- /AllContentContainer -->
