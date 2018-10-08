@@ -656,8 +656,8 @@
                       f))
           (hasNext [_] (boolean (first @t))))))
     (size [this] (count this))
-    (toArray [_] nil) ; TBD
-    (toArray [_ a] nil)) ; TBD
+    ;;toArray ... TBD
+    )
 
 (let [measure-lr (fn [x] (Len-Right-Meter. 1 x))
       zero-lr (Len-Right-Meter. 0 nil)
