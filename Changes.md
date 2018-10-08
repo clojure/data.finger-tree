@@ -1,6 +1,10 @@
 # Finger Tree change log
 
-### Changes from 0.0.1 to 0.0.2-SNAPSHOT
+### Version 0.0.3
+
+Removed TBD toArray impls to fix reflection error with Java 11.
+
+### Version 0.0.2
 
 Breaking changes:
 - Renamed `consl` to `conjl` (same argument order)
