@@ -12,6 +12,11 @@ There are examples of all these later in the README.
 
 # Finger Tree Quickstart
 
+## [CLI/`deps.edn`](https://clojure.org/reference/deps_and_cli) dependency information:
+```clojure
+org.clojure/data.finger-tree {:mvn/version "0.0.3"}
+```
+
 ## project.clj
 
 If you use leiningen or cake, add this to the `:dependencies` in your `project.clj`:
