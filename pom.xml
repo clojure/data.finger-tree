@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>data.finger-tree</artifactId>
-  <version>0.0.4-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>data.finger-tree</name>
   <description>Persistent collections based on 2-3 finger trees.</description>
 
@@ -24,7 +24,7 @@
     <connection>scm:git:git@github.com:clojure/data.finger-tree.git</connection>
     <developerConnection>scm:git:git@github.com:clojure/data.finger-tree.git</developerConnection>
     <url>git@github.com:clojure/data.finger-tree.git</url>
-    <tag>HEAD</tag>
+    <tag>v0.1.0</tag>
   </scm>
 
   <repositories>
