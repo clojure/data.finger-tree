@@ -17,7 +17,7 @@
   <parent>
     <groupId>org.clojure</groupId>
     <artifactId>pom.contrib</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
   </parent>
 
   <scm>
@@ -27,11 +27,4 @@
     <tag>HEAD</tag>
   </scm>
 
-  <repositories>
-    <!-- if our parent pom were a release (and in central), then this would be unnecessary -->
-    <repository>
-      <id>sonatype-oss-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
 </project>
